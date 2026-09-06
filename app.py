@@ -244,7 +244,7 @@ with tab_kbs:
     sloupec_provedeni = "Datum provedení" if "Datum provedení" in kbs_df.columns else ("Datum prohlídky" if "Datum prohlídky" in kbs_df.columns else (sloupce_s_datem_kbs[0] if sloupce_s_datem_kbs else None))
     sloupec_pristi = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if len(sloupce_s_datem_kbs) > 1 else None)
 
-        kbs_config = {}
+    kbs_config = {}
     for col in sloupce_s_datem_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         kbs_config[col] = st.column_config.DateColumn(
