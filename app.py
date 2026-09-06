@@ -150,12 +150,16 @@ with tab_kbs:
     
     # 1. Vyhledání datových sloupců
     sloupce_s_datem_kbs = []
-    mozne_nazvy_kbs = ["Datum provedení", "Příští prohlídka", "Další V1"]
+    mozne_nazvy_kbs = ["Datum provedení", "Datum prohlídky", "Příští prohlídka", "Další V1"]
     for col in kbs_df.columns:
         if col in mozne_nazvy_kbs or "datum" in col.lower():
             sloupce_s_datem_kbs.append(col)
 
-    # 2. Převod na datetime a formátování na psaný měsíc a rok
+    # 2. Návrh sloupců pro výpočet (+3 měsíce)
+    sloupec_provedeni = "Datum provedení" if "Datum provedení" in kbs_df.columns else ("Datum prohlídky" if "Datum prohlídky" in kbs_df.columns else (sloupce_s_datem_kbs[0] if sloupce_s_datem_kbs else None))
+    sloupec_pristi = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if len(sloupce_s_datem_kbs) > 1 else None)
+
+    # 3. Převod na datetime a formátování na psaný měsíc a rok
     kbs_config = {}
     for col in sloupce_s_datem_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
@@ -165,7 +169,7 @@ with tab_kbs:
             step=1
         )
 
-    # 3. Kontrola termínů
+    # 4. Kontrola termínů
     sloupec_pro_upozorneni = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
     
     if sloupec_pro_upozorneni:
@@ -184,7 +188,7 @@ with tab_kbs:
     else:
         styled_kbs = kbs_df
 
-    # 4. Vykreslení tabulky
+    # 5. Vykreslení tabulky
     edited_kbs = st.data_editor(
         styled_kbs, 
         use_container_width=True, 
@@ -194,6 +198,11 @@ with tab_kbs:
         key="kbs_editor"
     )
 
+    # 6. AUTOMATICKÝ PŘEPOČET: Datum prohlídky + 3 měsíce -> Příští prohlídka
+    if sloupec_provedeni and sloupec_pristi and sloupec_provedeni in edited_kbs.columns and sloupec_pristi in edited_kbs.columns:
+        edited_kbs[sloupec_pristi] = pd.to_datetime(edited_kbs[sloupec_provedeni]).apply(
+            lambda x: x + pd.DateOffset(months=3) if pd.notnull(x) else pd.NaT
+        )
 # ==================== LS06 List ====================
 with tab_ls06:
     st.subheader("LS06")
