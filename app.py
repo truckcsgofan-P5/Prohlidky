@@ -1,24 +1,49 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from github import Github
 import io
+import extra_streamlit_components as stx
+import time
+import hashlib
 
 st.set_page_config(page_title="Evidence Prohlídek Online", page_icon="🚂", layout="wide")
 
-# ==================== 0. PŘIHLAŠOVACÍ SYSTÉM (ČISTĚ PŘES ST.SECRETS) ====================
+# ==================== INICIALIZACE COOKIES ====================
+@st.cache_resource
+def get_cookie_manager():
+    # Inicializace správce cookies (načítá se jen jednou)
+    return stx.CookieManager()
+
+cookie_manager = get_cookie_manager()
+
+# ==================== 0. PŘIHLAŠOVACÍ SYSTÉM ====================
 if "users" in st.secrets:
     UZIVATELE = dict(st.secrets["users"])
 else:
     UZIVATELE = {}
-    st.error("⚠️ Nebyli načteni žádní uživatelé. Nastav prosím sekci [users] v Secrets na Streamlit Cloudu.")
+    st.error("⚠️ Nebyli načteni žádní uživatelé. Nastav prosím sekci [users] v Secrets.")
+
+def vytvorit_bezpecny_token(username):
+    """Vytvoří bezpečný hash (otisk) z hesla, aby se cookie nedala zfalšovat."""
+    heslo = UZIVATELE.get(username, "")
+    text_k_zasifrovani = f"{username}_tajny_klic_{heslo}"
+    return hashlib.sha256(text_k_zasifrovani.encode()).hexdigest()
 
 def overit_prihlaseni():
-    """Zkontroluje, zda je uživatel přihlášen. Pokud ne, zobrazí přihlašovací formulář."""
-    if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
+    # 1. Nejprve zkusíme načíst uživatele ze zachráněné Cookie
+    cookie_val = cookie_manager.get(cookie="auth_token")
+    
+    if cookie_val and "::" in str(cookie_val):
+        cookie_user, cookie_token = cookie_val.split("::", 1)
+        # Ověříme, zda souhlasí token (obrana proti podvržení cookie)
+        if cookie_user in UZIVATELE and vytvorit_bezpecny_token(cookie_user) == cookie_token:
+            st.session_state["logged_in"] = True
+            st.session_state["user"] = cookie_user
+            return True
 
-    if st.session_state["logged_in"]:
+    # 2. Klasická session kontrola
+    if st.session_state.get("logged_in"):
         return True
 
     # Zobrazení přihlašovacího okna
@@ -29,12 +54,26 @@ def overit_prihlaseni():
         with st.form("login_form"):
             username = st.text_input("Uživatelské jméno")
             password = st.text_input("Heslo", type="password")
+            # Přidáno zaškrtávací políčko
+            remember_me = st.checkbox("Pamatovat si mě na tomto zařízení (30 dní)", value=True)
             submit = st.form_submit_button("Přihlásit se", use_container_width=True)
             
             if submit:
                 if username in UZIVATELE and UZIVATELE[username] == password:
                     st.session_state["logged_in"] = True
                     st.session_state["user"] = username
+                    
+                    if remember_me:
+                        # Vytvoříme token ve formátu: jmeno::hash
+                        bezpecny_token = f"{username}::{vytvorit_bezpecny_token(username)}"
+                        # Uložíme do cookies na 30 dní
+                        cookie_manager.set(
+                            "auth_token", 
+                            bezpecny_token, 
+                            expires_at=datetime.now() + timedelta(days=30)
+                        )
+                        time.sleep(0.5) # Krátké zdržení, aby se cookie stihla uložit do prohlížeče
+                        
                     st.success("Přihlášení úspěšné!")
                     st.rerun()
                 else:
@@ -46,11 +85,14 @@ def overit_prihlaseni():
 if not overit_prihlaseni():
     st.stop()
 
-# Postranní panel s informací o přihlášení a tlačítkem pro odhlášení
+# ==================== POSTRANNÍ PANEL (ODHLÁŠENÍ) ====================
 with st.sidebar:
     st.write(f"👤 Přihlášen: **{st.session_state.get('user', '')}**")
     if st.button("Odhlásit se", use_container_width=True):
+        # Smazání cookie a session
+        cookie_manager.delete("auth_token")
         st.session_state["logged_in"] = False
+        time.sleep(0.5) # Zdržení pro smazání z prohlížeče
         st.rerun()
 
 # ==================== HLAVNÍ APLIKACE ====================
