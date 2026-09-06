@@ -244,7 +244,7 @@ with tab_kbs:
     sloupec_provedeni = "Datum provedení" if "Datum provedení" in kbs_df.columns else ("Datum prohlídky" if "Datum prohlídky" in kbs_df.columns else (sloupce_s_datem_kbs[0] if sloupce_s_datem_kbs else None))
     sloupec_pristi = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if len(sloupce_s_datem_kbs) > 1 else None)
 
-    kbs_config = {}
+        kbs_config = {}
     for col in sloupce_s_datem_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         kbs_config[col] = st.column_config.DateColumn(
@@ -252,6 +252,12 @@ with tab_kbs:
             format="DD.MM.YYYY",
             step=1
         )
+
+    # Vlastní šířky vybraných sloupců
+    if "Číslo mašiny" in kbs_df.columns:
+        kbs_config["Číslo mašiny"] = st.column_config.TextColumn("Číslo mašiny", width="small")
+    if "Provedena prohlídka" in kbs_df.columns:
+        kbs_config["Provedena prohlídka"] = st.column_config.TextColumn("Provedena prohlídka", width="large")
 
     sloupec_pro_upozorneni = sloupec_pristi if sloupec_pristi else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
     
@@ -289,6 +295,7 @@ with tab_kbs:
             edited_kbs[sloupec_pristi] = spocitane_pristi
             st.session_state["kbs_df"] = edited_kbs
             st.rerun()
+
 
 # ==================== LS06 List ====================
 with tab_ls06:
