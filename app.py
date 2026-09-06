@@ -249,7 +249,7 @@ with tab_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         kbs_config[col] = st.column_config.DateColumn(
             col,
-            format="MMMM YYYY",
+            format="DD.MM.YYYY",
             step=1
         )
 
@@ -308,7 +308,7 @@ with tab_ls06:
         ls06_df[col] = pd.to_datetime(ls06_df[col], errors="coerce")
         ls06_config[col] = st.column_config.DateColumn(
             col,
-            format="MMMM YYYY",
+            format="DD.MM.YYYY",
             step=1
         )
 
@@ -368,7 +368,7 @@ with tab_radio:
         radio_df[col] = pd.to_datetime(radio_df[col], errors="coerce")
         radio_config[col] = st.column_config.DateColumn(
             col,
-            format="MMMM YYYY",
+            format="DD.MM.YYYY",
             step=1
         )
 
