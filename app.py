@@ -7,15 +7,12 @@ import extra_streamlit_components as stx
 import time
 import hashlib
 
-st.set_page_config(page_title="Evidence Prohlídek Online", page_icon="🚂", layout="wide")
+st.set_page_config(page_title="Evidence Prohlídek Online", page_icon="🚂", 
+
 
 # ==================== INICIALIZACE COOKIES ====================
-@st.cache_resource
-def get_cookie_manager():
-    # Inicializace správce cookies (načítá se jen jednou)
-    return stx.CookieManager()
+cookie_manager = stx.CookieManager(key="muj_spravce_cookies")
 
-cookie_manager = get_cookie_manager()
 
 # ==================== 0. PŘIHLAŠOVACÍ SYSTÉM ====================
 if "users" in st.secrets:
