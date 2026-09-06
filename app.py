@@ -315,10 +315,14 @@ with tab_radio:
     st.subheader("Radiostanice")
     
     sloupce_s_datem_radio = []
-    mozne_nazvy_radio = ["Datum prohlídky", "Příští prohlídka", "Datum"]
+    mozne_nazvy_radio = ["Datum prohlídky", "Příští prohlídka", "Datum vykonání", "Příští datum", "Datum"]
     for col in radio_df.columns:
         if col in mozne_nazvy_radio or "datum" in col.lower():
             sloupce_s_datem_radio.append(col)
+
+    # Určení sloupců pro provedenou a příští prohlídku
+    sloupec_provedeni_rad = "Datum prohlídky" if "Datum prohlídky" in radio_df.columns else ("Datum vykonání" if "Datum vykonání" in radio_df.columns else (sloupce_s_datem_radio[0] if sloupce_s_datem_radio else None))
+    sloupec_pristi_rad = "Příští prohlídka" if "Příští prohlídka" in radio_df.columns else ("Příští datum" if "Příští datum" in radio_df.columns else (sloupce_s_datem_radio[-1] if len(sloupce_s_datem_radio) > 1 else None))
 
     radio_config = {}
     for col in sloupce_s_datem_radio:
@@ -329,7 +333,8 @@ with tab_radio:
             step=1
         )
 
-    sloupec_pro_upozorneni_rad = sloupce_s_datem_radio[-1] if sloupce_s_datem_radio else None
+    sloupec_pro_upozorneni_rad = sloupec_pristi_rad if sloupec_pristi_rad else (sloupce_s_datem_radio[-1] if sloupce_s_datem_radio else None)
+    
     if sloupec_pro_upozorneni_rad:
         propadle = ziskej_propadle_masiny(radio_df, sloupec_pro_upozorneni_rad)
         tento = ziskej_masiny_tento_mesic(radio_df, sloupec_pro_upozorneni_rad)
@@ -354,6 +359,18 @@ with tab_radio:
         column_config=radio_config,
         key="radio_editor"
     )
+
+    # --- AUTOMATICKÝ VÝPOČET PŘÍŠTÍ PROHLÍDKY (CO 4 ROKY / 48 MĚSÍCŮ) ---
+    if sloupec_provedeni_rad and sloupec_pristi_rad and sloupec_provedeni_rad in edited_radio.columns and sloupec_pristi_rad in edited_radio.columns:
+        spocitane_pristi = pd.to_datetime(edited_radio[sloupec_provedeni_rad]).apply(
+            lambda x: x + pd.DateOffset(years=4) if pd.notnull(x) else pd.NaT
+        )
+        
+        if not edited_radio[sloupec_pristi_rad].equals(spocitane_pristi):
+            edited_radio[sloupec_pristi_rad] = spocitane_pristi
+            st.session_state["radio_df"] = edited_radio
+            st.rerun()
+
 
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
