@@ -110,15 +110,18 @@ with tab_kbs:
     
     kbs_config = {}
     if sloupec_termínu_kbs:
+        # Převod sloupce na typ datetime pro kompatibilitu s DateColumn
+        kbs_df[sloupec_termínu_kbs] = pd.to_datetime(kbs_df[sloupec_termínu_kbs], errors="coerce")
+
         upozorneni = ziskej_masiny_pristi_mesic(kbs_df, sloupec_termínu_kbs)
         if upozorneni:
             st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(upozorneni)}")
+        
         styled_kbs = kbs_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_termínu_kbs, axis=1)
         
-        # Konfigurace sloupce pro zobrazení psaného měsíce a roku
         kbs_config[sloupec_termínu_kbs] = st.column_config.DateColumn(
             sloupec_termínu_kbs,
-            format="MMMM YYYY",  # Celý psaný měsíc + rok (např. Srpen 2026)
+            format="MMMM YYYY",
             step=1
         )
     else:
