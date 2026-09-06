@@ -257,7 +257,9 @@ with tab_kbs:
     if "Číslo mašiny" in kbs_df.columns:
         kbs_config["Číslo mašiny"] = st.column_config.TextColumn("Číslo mašiny", width="small")
     if "Provedena prohlídka" in kbs_df.columns:
-        kbs_config["Provedena prohlídka"] = st.column_config.TextColumn("Provedena prohlídka", width="large")
+        kbs_config["Provedena prohlídka"] = st.column_config.TextColumn("Provedena prohlídka", width="small")
+    #if "Číslo mašiny" in kbs_df.columns:
+        #kbs_config["Číslo mašiny"] = st.column_config.TextColumn("Číslo mašiny", width="small")
 
     sloupec_pro_upozorneni = sloupec_pristi if sloupec_pristi else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
     
