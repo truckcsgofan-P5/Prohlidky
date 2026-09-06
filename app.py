@@ -59,24 +59,27 @@ def zvyrazni_pristi_mesic(row, sloupec_data):
         pass
     return [''] * len(row)
 
-import io
-import pandas as pd
-import streamlit as st
-
 # Funkce pro načtení konkrétních listů z Excelu uloženého na GitHubu
 def nacist_data_z_excelu():
     try:
-        content = repo.get_contents("prohlidky.xlsx")  # Název tvého Excel souboru na GitHubu
+        content = repo.get_contents("prohlidky.xlsx")
         excel_data = io.BytesIO(content.decoded_content)
         
-        # Načtení podle přesných názvů listů v Excelu
-        kbs_df = pd.read_excel(excel_data, sheet_name="KBS", dtype=str)
-        ls06_df = pd.read_excel(excel_data, sheet_name="LS06", dtype=str)
-        radio_df = pd.read_excel(excel_data, sheet_name="Radiostanice", dtype=str)
+        # Načtení struktury Excelu
+        xls = pd.ExcelFile(excel_data)
+        dostupne_listy = xls.sheet_names
+        
+        # Zobrazení názvů záložek přímo v aplikaci pro kontrolu
+        st.caption(f"ℹ️ Nalezené listy v souboru: {', '.join(dostupne_listy)}")
+
+        # Načtení podle pořadí listů (0 = 1. list, 1 = 2. list, 2 = 3. list)
+        kbs_df = pd.read_excel(xls, sheet_name=0, dtype=str) if len(dostupne_listy) > 0 else pd.DataFrame()
+        ls06_df = pd.read_excel(xls, sheet_name=1, dtype=str) if len(dostupne_listy) > 1 else pd.DataFrame()
+        radio_df = pd.read_excel(xls, sheet_name=2, dtype=str) if len(dostupne_listy) > 2 else pd.DataFrame()
         
         return kbs_df, ls06_df, radio_df
     except Exception as e:
-        st.error(f"Soubor prohlidky.xlsx nebyl na GitHubu nalezen nebo se nepodařilo načíst listy: {e}")
+        st.error(f"Chyba při čtení souboru prohlidky.xlsx: {e}")
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 # Načtení reálných dat z Excelu
