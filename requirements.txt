@@ -2,3 +2,4 @@ streamlit
 pandas
 PyGithub
 openpyxl
+extra-streamlit-components
