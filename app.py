@@ -59,10 +59,14 @@ def zvyrazni_pristi_mesic(row, sloupec_data):
         pass
     return [''] * len(row)
 
+import io
+import pandas as pd
+import streamlit as st
+
 # Funkce pro načtení konkrétních listů z Excelu uloženého na GitHubu
 def nacist_data_z_excelu():
     try:
-        content = repo.get_contents("Seznam - KBS-E (Radek).xlsx")  # Název tvého Excel souboru na GitHubu
+        content = repo.get_contents("prohlidky.xlsx")  # Název tvého Excel souboru na GitHubu
         excel_data = io.BytesIO(content.decoded_content)
         
         # Načtení podle přesných názvů listů v Excelu
@@ -72,7 +76,7 @@ def nacist_data_z_excelu():
         
         return kbs_df, ls06_df, radio_df
     except Exception as e:
-        st.error(f"Soubor Seznam - KBS-E (Radek).xlsx nebyl na GitHubu nalezen nebo se nepodařilo načíst listy: {e}")
+        st.error(f"Soubor prohlidky.xlsx nebyl na GitHubu nalezen nebo se nepodařilo načíst listy: {e}")
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 # Načtení reálných dat z Excelu
