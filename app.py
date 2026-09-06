@@ -146,7 +146,7 @@ with tab_kbs:
         )
 
     # 3. Kontrola propadlých termínů a příštího měsíce (podle posledního datového sloupce)
-    sloupec_pro_upozorneni = sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None
+    sloupec_pro_upozorneni = "Příští prohlídka" if sloupce_s_datem_kbs else None
     if sloupec_pro_upozorneni:
         propadle = ziskej_propadle_masiny(kbs_df, sloupec_pro_upozorneni)
         pristi = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pro_upozorneni)
