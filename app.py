@@ -207,12 +207,20 @@ with tab_kbs:
 with tab_ls06:
     st.subheader("LS06")
     
+    # Načtení dat ze session_state
+    if "ls06_df" in st.session_state:
+        ls06_df = st.session_state["ls06_df"]
+    
     # 1. Vyhledání datových sloupců
     sloupce_s_datem_ls06 = []
-    mozne_nazvy_ls06 = ["Příští datum", "Datum prohlídky", "Datum vykonání", "Datum"]
+    mozne_nazvy_ls06 = ["Datum vykonání", "Datum prohlídky", "Příští datum", "Příští prohlídka", "Datum"]
     for col in ls06_df.columns:
         if col in mozne_nazvy_ls06 or "datum" in col.lower():
             sloupce_s_datem_ls06.append(col)
+
+    # Identifikace sloupce provedení a příští prohlídky
+    sloupec_provedeni = "Datum vykonání" if "Datum vykonání" in ls06_df.columns else ("Datum prohlídky" if "Datum prohlídky" in ls06_df.columns else (sloupce_s_datem_ls06[0] if sloupce_s_datem_ls06 else None))
+    sloupec_pristi = "Příští datum" if "Příští datum" in ls06_df.columns else ("Příští prohlídka" if "Příští prohlídka" in ls06_df.columns else (sloupce_s_datem_ls06[-1] if len(sloupce_s_datem_ls06) > 1 else None))
 
     # 2. Převod na datetime a formátování na psaný měsíc a rok
     ls06_config = {}
@@ -225,7 +233,8 @@ with tab_ls06:
         )
 
     # 3. Kontrola termínů
-    sloupec_pro_upozorneni = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
+    sloupec_pro_upozorneni = "Příští prohlídka" if "Příští prohlídka" else (sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None)
+    
     if sloupec_pro_upozorneni:
         propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni)
         tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni)
@@ -251,6 +260,17 @@ with tab_ls06:
         column_config=ls06_config,
         key="ls06_editor"
     )
+
+    # 5. AUTOMATICKÝ PŘEPOČET (+12 měsíců) A OKAMŽITÉ PŘEKRESLENÍ
+    if sloupec_provedeni and sloupec_pristi and sloupec_provedeni in edited_ls06.columns and sloupec_pristi in edited_ls06.columns:
+        spocitane_pristi = pd.to_datetime(edited_ls06[sloupec_provedeni]).apply(
+            lambda x: x + pd.DateOffset(months=12) if pd.notnull(x) else pd.NaT
+        )
+        
+        if not edited_ls06[sloupec_pristi].equals(spocitane_pristi):
+            edited_ls06[sloupec_pristi] = spocitane_pristi
+            st.session_state["ls06_df"] = edited_ls06
+            st.rerun()
 
 # ==================== Radiostanice List ====================
 with tab_radio:
