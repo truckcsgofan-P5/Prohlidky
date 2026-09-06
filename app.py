@@ -93,7 +93,7 @@ with st.sidebar:
         st.rerun()
 
 # ==================== HLAVNÍ APLIKACE ====================
-st.title("🚂 Online Evidence a správa prohlídek")
+st.title("🚂 Prohlídky VZ a Radiostanic")
 
 # --- 1. GITHUB INTEGRACE ---
 try:
