@@ -121,7 +121,7 @@ with tab_kbs:
         
         kbs_config[sloupec_termínu_kbs] = st.column_config.DateColumn(
             sloupec_termínu_kbs,
-            format="MM YYYY",
+            format="MM.YYYY",
             step=1
         )
     else:
