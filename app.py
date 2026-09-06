@@ -31,7 +31,6 @@ def nacist_data_z_excelu():
         ls06_df = pd.read_excel(xls, sheet_name=1, dtype=str) if len(dostupne_listy) > 1 else pd.DataFrame()
         radio_df = pd.read_excel(xls, sheet_name=2, dtype=str) if len(dostupne_listy) > 2 else pd.DataFrame()
         
-        # Nahrazení případných hodnot NaN prázdným řetězcem
         return kbs_df.fillna(""), ls06_df.fillna(""), radio_df.fillna("")
     except Exception as e:
         st.error(f"Chyba při načítání souboru prohlidky.xlsx z GitHubu: {e}")
@@ -53,7 +52,24 @@ def ulozit_vse_do_excelu(kbs_df, ls06_df, radio_df):
     except Exception as e:
         st.error(f"Chyba při ukládání na GitHub: {e}")
 
-# --- 4. VÝPOČET TERMÍNŮ A ZVÝRAZNĚNÍ ---
+# --- 4. NAČTENÍ A PŘEJMENOVÁNÍ DAT ---
+kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
+
+# Sem doplň názvy sloupců, které chceš změnit:
+kbs_df = kbs_df.rename(columns={
+    "Starý název 1": "Nový název 1",
+    "Starý název 2": "Nový název 2"
+})
+
+ls06_df = ls06_df.rename(columns={
+    "Starý název 1": "Nový název 1"
+})
+
+radio_df = radio_df.rename(columns={
+    "Starý název 1": "Nový název 1"
+})
+
+# --- 5. VÝPOČET TERMÍNŮ A ZVÝRAZNĚNÍ ---
 dnes = datetime.now()
 pristi_mesic_datum = (dnes.replace(day=1) + pd.Timedelta(days=32)).replace(day=1)
 pristi_mesic = pristi_mesic_datum.month
@@ -68,7 +84,7 @@ def ziskej_masiny_pristi_mesic(df, sloupec_data):
         (df_temp["_dt"].dt.month == pristi_mesic) & 
         (df_temp["_dt"].dt.year == pristi_rok)
     ]
-    prvni_sloupec = df.columns[0]  # Číslo mašiny je obvykle v prvním sloupci
+    prvni_sloupec = df.columns[0]
     return filtrovane[prvni_sloupec].dropna().unique().tolist()
 
 def zvyrazni_pristi_mesic(row, sloupec_data):
@@ -80,10 +96,7 @@ def zvyrazni_pristi_mesic(row, sloupec_data):
         pass
     return [''] * len(row)
 
-# Načtení dat z Excelu
-kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
-
-# --- 5. UI A TABULKY ---
+# --- 6. UI A TABULKY ---
 tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
 
 # KBS List
@@ -131,7 +144,7 @@ with tab_radio:
 
     edited_radio = st.data_editor(styled_radio, use_container_width=True, num_rows="dynamic", hide_index=True, key="radio_editor")
 
-# --- 6. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
+# --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
 if st.button("💾 Uložit všechny změny do Excelu na GitHub", type="primary", use_container_width=True):
     ulozit_vse_do_excelu(edited_kbs, edited_ls06, edited_radio)
