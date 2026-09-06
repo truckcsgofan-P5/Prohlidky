@@ -108,16 +108,30 @@ with tab_kbs:
     st.subheader("KBS Prohlídky")
     sloupec_termínu_kbs = "Datum další prohlídky" if "Datum další prohlídky" in kbs_df.columns else (kbs_df.columns[3] if len(kbs_df.columns) > 3 else None)
     
+    kbs_config = {}
     if sloupec_termínu_kbs:
         upozorneni = ziskej_masiny_pristi_mesic(kbs_df, sloupec_termínu_kbs)
         if upozorneni:
             st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(upozorneni)}")
         styled_kbs = kbs_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_termínu_kbs, axis=1)
+        
+        # Konfigurace sloupce pro zobrazení psaného měsíce a roku
+        kbs_config[sloupec_termínu_kbs] = st.column_config.DateColumn(
+            sloupec_termínu_kbs,
+            format="MMMM YYYY",  # Celý psaný měsíc + rok (např. Srpen 2026)
+            step=1
+        )
     else:
         styled_kbs = kbs_df
 
-    edited_kbs = st.data_editor(styled_kbs, use_container_width=True, num_rows="dynamic", hide_index=True, key="kbs_editor")
-
+    edited_kbs = st.data_editor(
+        styled_kbs, 
+        use_container_width=True, 
+        num_rows="dynamic", 
+        hide_index=True, 
+        column_config=kbs_config,
+        key="kbs_editor"
+    )
 # LS06 List
 with tab_ls06:
     st.subheader("LS06")
