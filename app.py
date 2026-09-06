@@ -67,9 +67,9 @@ kbs_df = kbs_df.rename(columns={
 
 ls06_df = ls06_df.rename(columns={
     "Unnamed: 0": "Číslo mašiny",
-    "Datum provedení prohlídky a rozsah": "Datum prohlídky"
+    "Datum provedení prohlídky a rozsah": "Datum prohlídky",
     "Unnamed: 2": "Provedena prohlídka",
-    "Přístí prohlídka a rozsah": "Příští prohlídka"
+    "Přístí prohlídka a rozsah": "Příští prohlídka",
     "Unnamed: 4": "Budoucí prohlídka",
     "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
 })
