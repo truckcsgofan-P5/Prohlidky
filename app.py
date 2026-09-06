@@ -198,11 +198,17 @@ with tab_kbs:
         key="kbs_editor"
     )
 
-    # 6. AUTOMATICKÝ PŘEPOČET: Datum prohlídky + 3 měsíce -> Příští prohlídka
+    # 6. AUTOMATICKÝ PŘEPOČET (+3 měsíce) A OKAMŽITÉ PŘEKRESLENÍ
     if sloupec_provedeni and sloupec_pristi and sloupec_provedeni in edited_kbs.columns and sloupec_pristi in edited_kbs.columns:
-        edited_kbs[sloupec_pristi] = pd.to_datetime(edited_kbs[sloupec_provedeni]).apply(
+        spocitane_pristi = pd.to_datetime(edited_kbs[sloupec_provedeni]).apply(
             lambda x: x + pd.DateOffset(months=3) if pd.notnull(x) else pd.NaT
         )
+        
+        # Zkontrolujeme, zda se vypočítané datum liší od toho v editoru
+        if not edited_kbs[sloupec_pristi].equals(spocitane_pristi):
+            edited_kbs[sloupec_pristi] = spocitane_pristi
+            st.session_state["kbs_df"] = edited_kbs
+            st.rerun()
 # ==================== LS06 List ====================
 with tab_ls06:
     st.subheader("LS06")
