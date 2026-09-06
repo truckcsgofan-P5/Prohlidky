@@ -71,6 +71,7 @@ ls06_df = ls06_df.rename(columns={
     "Unnamed: 2": "Provedena prohlídka",
     "Přístí prohlídka a rozsah": "Příští prohlídka",
     "Unnamed: 4": "Budoucí prohlídka",
+    "2026-09-06 00:00:00": "Typ",
     "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
 })
 
