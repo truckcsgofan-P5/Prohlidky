@@ -140,8 +140,6 @@ def zvyrazni_terminy(row, sloupec_data):
     except:
         pass
     return [''] * len(row)
-# --- 6. UI A TABULKY ---
-tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
 
 # --- 6. UI A TABULKY ---
 tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
