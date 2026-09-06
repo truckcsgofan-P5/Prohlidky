@@ -148,16 +148,16 @@ if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "rad
         "Datum provedení prohlídky a rozsah": "Datum provedení",
         "Provedena prohlídka": "Rozsah",
         " Přístí prohlídka a rozsah": "Příští prohlídka",
-        "Unnamed: 4": "Rozsah",
+        "Budoucí prohlídka": "Rozsah",
         "Starý název 2": "Nový název 2"
     })
 
     st.session_state["ls06_df"] = ls06_df.rename(columns={
         "Unnamed: 0": "Číslo mašiny",
         "Datum provedení prohlídky a rozsah": "Datum prohlídky",
-        "Unnamed: 2": "Rozsah",
+        "Provedena prohlídka": "Rozsah",
         "Přístí prohlídka a rozsah": "Příští prohlídka",
-        "Unnamed: 4": "Rozsah",
+        "Budoucí prohlídka": "Rozsah",
         "2026-09-06 00:00:00": "Typ",
         "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
     })
