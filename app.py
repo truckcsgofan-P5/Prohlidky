@@ -59,18 +59,24 @@ def zvyrazni_pristi_mesic(row, sloupec_data):
         pass
     return [''] * len(row)
 
-# --- NAČTENÍ DAT Z GITHUB REPOZITÁŘE ---
-kbs_df = nacist_csv("kbs_data.csv", [
-    {"Číslo mašiny": "754 012", "Datum": "2026-05-10", "Rozsah": "P-2", "Datum další prohlídky": "2026-10-10", "Příští rozsah": "P-3", "Výměna V1": "Ano"}
-])
+# Funkce pro načtení konkrétních listů z Excelu uloženého na GitHubu
+def nacist_data_z_excelu():
+    try:
+        content = repo.get_contents("prohlidky.xlsx")  # Název tvého Excel souboru na GitHubu
+        excel_data = io.BytesIO(content.decoded_content)
+        
+        # Načtení podle přesných názvů listů v Excelu
+        kbs_df = pd.read_excel(excel_data, sheet_name="KBS", dtype=str)
+        ls06_df = pd.read_excel(excel_data, sheet_name="LS06", dtype=str)
+        radio_df = pd.read_excel(excel_data, sheet_name="Radiostanice", dtype=str)
+        
+        return kbs_df, ls06_df, radio_df
+    except Exception as e:
+        st.error(f"Soubor prohlidky.xlsx nebyl na GitHubu nalezen nebo se nepodařilo načíst listy: {e}")
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-ls06_df = nacist_csv("ls06_data.csv", [
-    {"Číslo mašiny": "754 012", "Datum": "2026-04-15", "Rozsah": "Pr2", "Příští datum": "2026-10-05", "Příští prohlídka": "Pr2"}
-])
-
-radio_df = nacist_csv("radio_data.csv", [
-    {"Číslo mašiny": "754 012", "Datum prohlídky": "2026-10-20"}
-])
+# Načtení reálných dat z Excelu
+kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
 
 # --- HLAVNÍ NAVIGACE A LISTY ---
 tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
