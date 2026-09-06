@@ -106,27 +106,41 @@ tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "�
 # KBS List
 with tab_kbs:
     st.subheader("KBS Prohlídky")
-    sloupec_termínu_kbs = "Datum další prohlídky" if "Datum další prohlídky" in kbs_df.columns else (kbs_df.columns[3] if len(kbs_df.columns) > 3 else None)
     
-    kbs_config = {}
-    if sloupec_termínu_kbs:
-        # Převod sloupce na typ datetime pro kompatibilitu s DateColumn
-        kbs_df[sloupec_termínu_kbs] = pd.to_datetime(kbs_df[sloupec_termínu_kbs], errors="coerce")
+    # 1. Seznam sloupců, které obsahují datum (doplň přesné názvy z tvého Excelu)
+    # Nebo vybereme sloupce podle pozice (např. 2. sloupec = index 1, 4. sloupec = index 3)
+    sloupce_s_datem = []
+    
+    # Pokud znáš přesné názvy sloupců v Excelu, zadej je sem:
+    mozne_nazvy = ["Datum provedení", "Příští prohlídka", "Další V1"]
+    for col in kbs_df.columns:
+        if col in mozne_nazvy or "datum" in col.lower():
+            sloupce_s_datem.append(col)
 
-        upozorneni = ziskej_masiny_pristi_mesic(kbs_df, sloupec_termínu_kbs)
-        if upozorneni:
-            st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(upozorneni)}")
+    # 2. Nastavení formátování pro všechny nalezené datové sloupce
+    kbs_config = {}
+    for col in sloupce_s_datem:
+        # Převod sloupce na typ datetime
+        kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         
-        styled_kbs = kbs_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_termínu_kbs, axis=1)
-        
-        kbs_config[sloupec_termínu_kbs] = st.column_config.DateColumn(
-            sloupec_termínu_kbs,
+        # Nastavení formátu s psaným měsícem
+        kbs_config[col] = st.column_config.DateColumn(
+            col,
             format="MM.YYYY",
             step=1
         )
+
+    # 3. Kontrola upozornění a zvýraznění (podle posledního datového sloupce / příští prohlídky)
+    sloupec_pro_upozorneni = sloupce_s_datem[-1] if sloupce_s_datem else None
+    if sloupec_pro_upozorneni:
+        upozorneni = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pro_upozorneni)
+        if upozorneni:
+            st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(upozorneni)}")
+        styled_kbs = kbs_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
         styled_kbs = kbs_df
 
+    # 4. Vykreslení tabulky
     edited_kbs = st.data_editor(
         styled_kbs, 
         use_container_width=True, 
