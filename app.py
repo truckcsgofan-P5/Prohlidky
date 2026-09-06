@@ -143,6 +143,9 @@ def zvyrazni_terminy(row, sloupec_data):
 # --- 6. UI A TABULKY ---
 tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
 
+# --- 6. UI A TABULKY ---
+tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
+
 # ==================== KBS List ====================
 with tab_kbs:
     st.subheader("KBS Prohlídky")
@@ -160,30 +163,26 @@ with tab_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         kbs_config[col] = st.column_config.DateColumn(
             col,
-            format="MMMM YYYY",  # Zobrazí např. Srpen 2026
+            format="MMMM YYYY",
             step=1
         )
 
-    # 3. Kontrola propadlých termínů a příštího měsíce (podle posledního datového sloupce)
-  sloupec_pro_upozorneni = "Příští prohlídka" if sloupce_s_datem_kbs else None
-if sloupec_pro_upozorneni:
-    propadle = ziskej_propadle_masiny(kbs_df, sloupec_pro_upozorneni)
-    tento = ziskej_masiny_tento_mesic(kbs_df, sloupec_pro_upozorneni)
-    pristi = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pro_upozorneni)
+    # 3. Kontrola termínů
+    sloupec_pro_upozorneni = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
     
-    # 1. Propadlé (Červená)
-    if propadle:
-        st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
-    
-    # 2. Tento měsíc (Oranžová)
-    if tento:
-        st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
-    
-    # 3. Příští měsíc (Žlutá)
-    if pristi:
-        st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+    if sloupec_pro_upozorneni:
+        propadle = ziskej_propadle_masiny(kbs_df, sloupec_pro_upozorneni)
+        tento = ziskej_masiny_tento_mesic(kbs_df, sloupec_pro_upozorneni)
+        pristi = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pro_upozorneni)
         
-    styled_kbs = kbs_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1)
+        if propadle:
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
+        if tento:
+            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
+        if pristi:
+            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            
+        styled_kbs = kbs_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
         styled_kbs = kbs_df
 
@@ -203,7 +202,7 @@ with tab_ls06:
     
     # 1. Vyhledání datových sloupců
     sloupce_s_datem_ls06 = []
-    mozne_nazvy_ls06 = ["Příští prohlídka", "Datum prohlídky", "Datum vykonání", "Datum"]
+    mozne_nazvy_ls06 = ["Příští datum", "Datum prohlídky", "Datum vykonání", "Datum"]
     for col in ls06_df.columns:
         if col in mozne_nazvy_ls06 or "datum" in col.lower():
             sloupce_s_datem_ls06.append(col)
@@ -218,16 +217,19 @@ with tab_ls06:
             step=1
         )
 
-    # 3. Kontrola propadlých termínů a příštího měsíce
+    # 3. Kontrola termínů
     sloupec_pro_upozorneni = sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None
     if sloupec_pro_upozorneni:
         propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni)
+        tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni)
         pristi = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni)
         
         if propadle:
-            st.error(f"🚨 **PROPADLÁ PROHLÍDKA (vyžaduje pozornost):** {', '.join(propadle)}")
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
+        if tento:
+            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
             
         styled_ls06 = ls06_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
@@ -264,16 +266,19 @@ with tab_radio:
             step=1
         )
 
-    # 3. Kontrola propadlých termínů a příštího měsíce
+    # 3. Kontrola termínů
     sloupec_pro_upozorneni = sloupce_s_datem_radio[-1] if sloupce_s_datem_radio else None
     if sloupec_pro_upozorneni:
         propadle = ziskej_propadle_masiny(radio_df, sloupec_pro_upozorneni)
+        tento = ziskej_masiny_tento_mesic(radio_df, sloupec_pro_upozorneni)
         pristi = ziskej_masiny_pristi_mesic(radio_df, sloupec_pro_upozorneni)
         
         if propadle:
-            st.error(f"🚨 **PROPADLÁ PROHLÍDKA (vyžaduje pozornost):** {', '.join(propadle)}")
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
+        if tento:
+            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
             
         styled_radio = radio_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
