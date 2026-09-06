@@ -216,7 +216,7 @@ with tab_ls06:
         )
 
     # 3. Kontrola termínů
-    sloupec_pro_upozorneni = sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None
+    sloupec_pro_upozorneni = "Příští prohlídka" if "Příští prohlídka" in kbs_df.columns else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
     if sloupec_pro_upozorneni:
         propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni)
         tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni)
