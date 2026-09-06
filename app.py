@@ -146,7 +146,7 @@ if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "rad
     st.session_state["kbs_df"] = kbs_df.rename(columns={
         "Unnamed: 0": "Číslo mašiny",
         "Datum provedení prohlídky a rozsah": "Datum provedení",
-        "Unnamed: 2": "Rozsah",
+        "Provedena prohlídka": "Rozsah",
         " Přístí prohlídka a rozsah": "Příští prohlídka",
         "Unnamed: 4": "Rozsah",
         "Starý název 2": "Nový název 2"
