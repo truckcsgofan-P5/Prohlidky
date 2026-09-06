@@ -155,9 +155,9 @@ if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "rad
     st.session_state["ls06_df"] = ls06_df.rename(columns={
         "Unnamed: 0": "Číslo mašiny",
         "Datum provedení prohlídky a rozsah": "Datum prohlídky",
-        "Unnamed: 2": "Provedena prohlídka",
+        "Unnamed: 2": "Rozsah",
         "Přístí prohlídka a rozsah": "Příští prohlídka",
-        "Unnamed: 4": "Budoucí prohlídka",
+        "Unnamed: 4": "Rozsah",
         "2026-09-06 00:00:00": "Typ",
         "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
     })
@@ -256,8 +256,8 @@ with tab_kbs:
     # Vlastní šířky vybraných sloupců
     if "Číslo mašiny" in kbs_df.columns:
         kbs_config["Číslo mašiny"] = st.column_config.TextColumn("Číslo mašiny", width="small")
-    if "Provedena prohlídka" in kbs_df.columns:
-        kbs_config["Provedena prohlídka"] = st.column_config.TextColumn("Provedena prohlídka", width="small")
+    if "Rozsah" in kbs_df.columns:
+        kbs_config["Rozsah"] = st.column_config.TextColumn("Rozsah", width="small")
     #if "Číslo mašiny" in kbs_df.columns:
         #kbs_config["Číslo mašiny"] = st.column_config.TextColumn("Číslo mašiny", width="small")
 
