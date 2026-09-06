@@ -7,7 +7,7 @@ import extra_streamlit_components as stx
 import time
 import hashlib
 
-st.set_page_config(page_title="Evidence Prohlídek Online", page_icon="🚂", 
+st.set_page_config(page_title="Evidence Prohlídek Online", page_icon="🚂", layout="wide")
 
 
 # ==================== INICIALIZACE COOKIES ====================
