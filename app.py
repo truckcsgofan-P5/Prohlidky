@@ -57,7 +57,7 @@ kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
 
 # Sem doplň názvy sloupců, které chceš změnit:
 kbs_df = kbs_df.rename(columns={
-    "Starý název 1": "Nový název 1",
+    "Unnamed: 2": "Provedena prohlídka",
     "Starý název 2": "Nový název 2"
 })
 
