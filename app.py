@@ -176,7 +176,7 @@ with tab_ls06:
     
     # 1. Vyhledání datových sloupců
     sloupce_s_datem_ls06 = []
-    mozne_nazvy_ls06 = ["Příští datum", "Datum prohlídky", "Datum vykonání", "Datum"]
+    mozne_nazvy_ls06 = ["Příští prohlídka", "Datum prohlídky", "Datum vykonání", "Datum"]
     for col in ls06_df.columns:
         if col in mozne_nazvy_ls06 or "datum" in col.lower():
             sloupce_s_datem_ls06.append(col)
