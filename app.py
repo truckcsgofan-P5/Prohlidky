@@ -66,7 +66,12 @@ kbs_df = kbs_df.rename(columns={
 })
 
 ls06_df = ls06_df.rename(columns={
-    "Starý název 1": "Nový název 1"
+    "Unnamed: 0": "Číslo mašiny",
+    "Datum provedení prohlídky a rozsah": "Datum prohlídky"
+    "Unnamed: 2": "Provedena prohlídka",
+    "Přístí prohlídka a rozsah": "Příští prohlídka"
+    "Unnamed: 4": "Budoucí prohlídka",
+    "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
 })
 
 radio_df = radio_df.rename(columns={
@@ -152,17 +157,43 @@ with tab_kbs:
 # LS06 List
 with tab_ls06:
     st.subheader("LS06")
-    sloupec_termínu_ls06 = "Příští datum" if "Příští datum" in ls06_df.columns else (ls06_df.columns[3] if len(ls06_df.columns) > 3 else None)
     
-    if sloupec_termínu_ls06:
-        upozorneni = ziskej_masiny_pristi_mesic(ls06_df, sloupec_termínu_ls06)
+    # 1. Vyhledání všech sloupců obsahujících datum
+    sloupce_s_datem_ls06 = []
+    mozne_nazvy = ["Příští datum", "Datum prohlídky", "Datum vykonání", "Datum"]
+    for col in ls06_df.columns:
+        if col in mozne_nazvy or "datum" in col.lower():
+            sloupce_s_datem_ls06.append(col)
+
+    # 2. Převod na datetime a nastavení psaného měsíce pro všechny nalezené sloupce
+    ls06_config = {}
+    for col in sloupce_s_datem_ls06:
+        ls06_df[col] = pd.to_datetime(ls06_df[col], errors="coerce")
+        ls06_config[col] = st.column_config.DateColumn(
+            col,
+            format="MM.YYYY",  # Zobrazí např. Srpen 2026
+            step=1
+        )
+
+    # 3. Upozornění a zvýraznění termínů pro příští měsíc
+    sloupec_pro_upozorneni = sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None
+    if sloupec_pro_upozorneni:
+        upozorneni = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni)
         if upozorneni:
             st.warning(f"⚠️ **Pozor na prohlídku příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(upozorneni)}")
-        styled_ls06 = ls06_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_termínu_ls06, axis=1)
+        styled_ls06 = ls06_df.style.apply(zvyrazni_pristi_mesic, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
         styled_ls06 = ls06_df
 
-    edited_ls06 = st.data_editor(styled_ls06, use_container_width=True, num_rows="dynamic", hide_index=True, key="ls06_editor")
+    # 4. Vykreslení tabulky
+    edited_ls06 = st.data_editor(
+        styled_ls06, 
+        use_container_width=True, 
+        num_rows="dynamic", 
+        hide_index=True, 
+        column_config=ls06_config,
+        key="ls06_editor"
+    )
 
 # Radiostanice List
 with tab_radio:
