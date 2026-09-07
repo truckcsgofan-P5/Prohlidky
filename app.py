@@ -284,6 +284,7 @@ with tab_kbs:
     else:
         styled_kbs = kbs_df
 
+    # 1. ZOBRAZENÍ TABULKY (Tento blok PONECHÁŠ)
     edited_kbs = st.data_editor(
         kbs_df, 
         use_container_width=True, 
@@ -293,6 +294,31 @@ with tab_kbs:
         key="kbs_editor"
     )
 
+    # 2. LOGIKA REAKTIVNÍCH ZMĚN (Tento blok nahradí tvůj původní 'if')
+    zmena = False
+
+    # A) Změna rozsahu (P-2 -> P-3 a P-3 -> P-2)
+    sloupec_rozsah_aktualni = "Provedena prohlídka"
+    sloupec_rozsah_budouci = "Budoucí prohlídka"
+
+    if sloupec_rozsah_aktualni in edited_kbs.columns and sloupec_rozsah_budouci in edited_kbs.columns:
+        def urcit_nasledujici_rozsah(val):
+            if pd.isna(val):
+                return val
+            val_str = str(val).strip()
+            if val_str == "P-2":
+                return "P-3"
+            elif val_str == "P-3":
+                return "P-2"
+            return val
+
+        nove_budouci = edited_kbs[sloupec_rozsah_aktualni].apply(urcit_nasledujici_rozsah)
+        
+        if not edited_kbs[sloupec_rozsah_budouci].equals(nove_budouci):
+            edited_kbs[sloupec_rozsah_budouci] = nove_budouci
+            zmena = True
+
+    # B) Přepočet příštího data (+3 měsíce)
     if sloupec_provedeni and sloupec_pristi and sloupec_provedeni in edited_kbs.columns and sloupec_pristi in edited_kbs.columns:
         spocitane_pristi = pd.to_datetime(edited_kbs[sloupec_provedeni]).apply(
             lambda x: x + pd.DateOffset(months=3) if pd.notnull(x) else pd.NaT
@@ -300,8 +326,12 @@ with tab_kbs:
         
         if not edited_kbs[sloupec_pristi].equals(spocitane_pristi):
             edited_kbs[sloupec_pristi] = spocitane_pristi
-            st.session_state["kbs_df"] = edited_kbs
-            st.rerun()
+            zmena = True
+
+    # C) Pokud došlo k jakékoliv změně, uložíme a obnovíme
+    if zmena:
+        st.session_state["kbs_df"] = edited_kbs
+        st.rerun()
 
 
 # ==================== LS06 List ====================
