@@ -235,7 +235,7 @@ def zvyrazni_terminy(row, sloupec_data):
 
 
 # --- ODKAZ NA DRUHOU STRÁNKU (NAD ZÁLOŽKAMI) ---
-st.page_link("https://elektronicivm.streamlit.app/", label="✏️ Přejít na stránku Úprav", icon="🔗")
+st.page_link("https://elektronicivm.streamlit.app/", label="✏️ Evidence zavávad", icon="🔗")
 
 st.divider()  # Volitelná oddělovací čára
 
