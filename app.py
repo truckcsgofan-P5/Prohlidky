@@ -143,6 +143,11 @@ def ulozit_vse_do_excelu(kbs_df, ls06_df, radio_df):
 if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "radio_df" not in st.session_state:
     kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
 
+    # NOVÉ: Pojistka - převedení všech názvů sloupců striktně na text
+    kbs_df.columns = kbs_df.columns.astype(str)
+    ls06_df.columns = ls06_df.columns.astype(str)
+    radio_df.columns = radio_df.columns.astype(str)
+
     st.session_state["kbs_df"] = kbs_df.rename(columns={
         "Unnamed: 0": "Číslo mašiny",
         "Datum provedení prohlídky a rozsah": "Datum provedení",
