@@ -235,9 +235,9 @@ def zvyrazni_terminy(row, sloupec_data):
 
 
 # --- ODKAZ NA DRUHOU STRÁNKU (NAD ZÁLOŽKAMI) ---
-st.page_link("https://elektronicivm.streamlit.app/, label="✏️ Přejít na stránku Úprav", icon="🔗")
+st.page_link("https://elektronicivm.streamlit.app/", label="✏️ Přejít na stránku Úprav", icon="🔗")
 
-st.divider() # Volitelná oddělovací čára
+st.divider()  # Volitelná oddělovací čára
 
 # --- 6. UI A TABULKY ---
 tab_kbs, tab_ls06, tab_radio = st.tabs(["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"])
