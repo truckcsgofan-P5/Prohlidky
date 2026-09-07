@@ -298,8 +298,8 @@ with tab_kbs:
     zmena = False
 
     # A) Změna rozsahu (P-2 -> P-3 a P-3 -> P-2)
-    sloupec_rozsah_aktualni = "Provedena prohlídka"
-    sloupec_rozsah_budouci = "Budoucí prohlídka"
+    sloupec_rozsah_aktualni = "Rozsah"
+    sloupec_rozsah_budouci = "Následujcí"
 
     if sloupec_rozsah_aktualni in edited_kbs.columns and sloupec_rozsah_budouci in edited_kbs.columns:
         def urcit_nasledujici_rozsah(val):
