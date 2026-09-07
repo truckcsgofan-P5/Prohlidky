@@ -153,7 +153,7 @@ if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "rad
         "Datum provedení prohlídky a rozsah": "Datum provedení",
         "Provedena prohlídka": "Rozsah",
         " Přístí prohlídka a rozsah": "Příští prohlídka",
-        "Budoucí prohlídka": "Rozsah",
+        "Budoucí prohlídka": "Následujcí",
         "Starý název 2": "Nový název 2"
     })
 
@@ -162,7 +162,7 @@ if "kbs_df" not in st.session_state or "ls06_df" not in st.session_state or "rad
         "Datum provedení prohlídky a rozsah": "Datum prohlídky",
         "Provedena prohlídka": "Rozsah",
         "Přístí prohlídka a rozsah": "Příští prohlídka",
-        "Budoucí prohlídka": "Rozsah",
+        "Budoucí prohlídka": "Následujcí",
         "2026-09-06 00:00:00": "Typ",
         "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
     })
