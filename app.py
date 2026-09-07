@@ -280,7 +280,7 @@ with tab_kbs:
         styled_kbs = kbs_df
 
     edited_kbs = st.data_editor(
-        styled_kbs, 
+        kbs_df, 
         use_container_width=True, 
         num_rows="dynamic", 
         hide_index=True, 
