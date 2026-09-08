@@ -370,7 +370,7 @@ with tab_ls06:
         pristi = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni_ls)
         
         if propadle:
-            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
             st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
@@ -430,7 +430,7 @@ with tab_radio:
         pristi = ziskej_masiny_pristi_mesic(radio_df, sloupec_pro_upozorneni_rad)
         
         if propadle:
-            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}")
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
             st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
