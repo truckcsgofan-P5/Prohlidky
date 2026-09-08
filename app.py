@@ -393,7 +393,7 @@ with tab_kbs:
         pristi_v1 = ziskej_masiny_pristi_mesic(kbs_df, sloupec_v1)
 
         if propadle_v1:
-            st.error(f"🚨 **PROPADLÁ V1 PROHLÍDKA:** {', '.join(propadle_v1)}‼️")
+            st.error(f"🚨 **PROPADLÁ V1:** {', '.join(propadle_v1)}‼️")
         if tento_v1:
             st.warning(f"🔧 **V1 Tento měsíc ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento_v1)}")
         if pristi_v1:
