@@ -590,105 +590,117 @@ with tab_ls06:
       st.session_state["ls06_df"] = edited_ls06
       st.rerun()
 
-# ==================== Radiostanice List ====================
 with tab_radio:
-  st.subheader("Radiostanice")
+    st.subheader("Radiostanice")
 
-  sloupce_s_datem_radio = []
-  mozne_nazvy_radio = [
-      "Datum prohlídky",
-      "Příští prohlídka",
-      "Datum provedení",
-      "Příští datum",
-      "Datum",
-  ]
-  for col in radio_df.columns:
-    if col in mozne_nazvy_radio or "datum" in col.lower():
-      sloupce_s_datem_radio.append(col)
+    # 1. PŘIDÁNO: Pokud chybí sloupec pro výpočet dalšího data, automaticky ho založíme
+    if "Příští prohlídka" not in radio_df.columns:
+        radio_df["Příští prohlídka"] = pd.NaT
 
-  sloupec_provedeni_rad = (
-      "Datum prohlídky"
-      if "Datum prohlídky" in radio_df.columns
-      else (
-          "Datum vykonání"
-          if "Datum vykonání" in radio_df.columns
-          else (sloupce_s_datem_radio[0] if sloupce_s_datem_radio else None)
-      )
-  )
-  sloupec_pristi_rad = (
-      "Příští prohlídka"
-      if "Příští prohlídka" in radio_df.columns
-      else (
-          "Příští datum"
-          if "Příští datum" in radio_df.columns
-          else (
-              sloupce_s_datem_radio[-1]
-              if len(sloupce_s_datem_radio) > 1
-              else None
-          )
-      )
-  )
+    sloupce_s_datem_radio = []
+    # 2. PŘIDÁNO: Doplněno "Datum provedení" na začátek seznamu
+    mozne_nazvy_radio = [
+        "Datum provedení", 
+        "Datum prohlídky",
+        "Příští prohlídka",
+        "Datum vykonání",
+        "Příští datum",
+        "Datum",
+    ]
+    
+    for col in radio_df.columns:
+        if col in mozne_nazvy_radio or "datum" in col.lower():
+            sloupce_s_datem_radio.append(col)
 
-  radio_config = {}
-  for col in sloupce_s_datem_radio:
-    radio_df[col] = pd.to_datetime(radio_df[col], errors="coerce")
-    radio_config[col] = st.column_config.DateColumn(
-        col, format="DD.MM.YYYY", step=1
+    # 3. PŘIDÁNO: Přidána priorita pro "Datum provedení"
+    sloupec_provedeni_rad = (
+        "Datum provedení"
+        if "Datum provedení" in radio_df.columns
+        else (
+            "Datum prohlídky"
+            if "Datum prohlídky" in radio_df.columns
+            else (
+                "Datum vykonání"
+                if "Datum vykonání" in radio_df.columns
+                else (sloupce_s_datem_radio[0] if sloupce_s_datem_radio else None)
+            )
+        )
+    )
+    
+    sloupec_pristi_rad = (
+        "Příští prohlídka"
+        if "Příští prohlídka" in radio_df.columns
+        else (
+            "Příští datum"
+            if "Příští datum" in radio_df.columns
+            else (
+                sloupce_s_datem_radio[-1]
+                if len(sloupce_s_datem_radio) > 1
+                else None
+            )
+        )
     )
 
-  sloupec_pro_upozorneni_rad = (
-      sloupec_pristi_rad
-      if sloupec_pristi_rad
-      else (sloupce_s_datem_radio[-1] if sloupce_s_datem_radio else None)
-  )
+    radio_config = {}
+    for col in sloupce_s_datem_radio:
+        radio_df[col] = pd.to_datetime(radio_df[col], errors="coerce")
+        radio_config[col] = st.column_config.DateColumn(
+            col, format="DD.MM.YYYY", step=1
+        )
 
-  if sloupec_pro_upozorneni_rad:
-    propadle = ziskej_propadle_masiny(radio_df, sloupec_pro_upozorneni_rad)
-    tento = ziskej_masiny_tento_mesic(radio_df, sloupec_pro_upozorneni_rad)
-    pristi = ziskej_masiny_pristi_mesic(radio_df, sloupec_pro_upozorneni_rad)
-
-    if propadle:
-      st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
-    if tento:
-      st.warning(
-          f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
-          f" {', '.join(tento)}"
-      )
-    if pristi:
-      st.info(
-          f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
-          f" {', '.join(pristi)}"
-      )
-
-    styled_radio = radio_df.style.apply(
-        zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_rad, axis=1
+    sloupec_pro_upozorneni_rad = (
+        sloupec_pristi_rad
+        if sloupec_pristi_rad
+        else (sloupce_s_datem_radio[-1] if sloupce_s_datem_radio else None)
     )
-  else:
-    styled_radio = radio_df
 
-  edited_radio = st.data_editor(
-      styled_radio,
-      use_container_width=True,
-      num_rows="dynamic",
-      hide_index=True,
-      column_config=radio_config,
-      key="radio_editor",
-  )
+    if sloupec_pro_upozorneni_rad:
+        propadle = ziskej_propadle_masiny(radio_df, sloupec_pro_upozorneni_rad)
+        tento = ziskej_masiny_tento_mesic(radio_df, sloupec_pro_upozorneni_rad)
+        pristi = ziskej_masiny_pristi_mesic(radio_df, sloupec_pro_upozorneni_rad)
 
-  if (
-      sloupec_provedeni_rad
-      and sloupec_pristi_rad
-      and sloupec_provedeni_rad in edited_radio.columns
-      and sloupec_pristi_rad in edited_radio.columns
-  ):
-    spocitane_pristi = pd.to_datetime(
-        edited_radio[sloupec_provedeni_rad]
-    ).apply(lambda x: x + pd.DateOffset(years=3) if pd.notnull(x) else pd.NaT)
+        if propadle:
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
+        if tento:
+            st.warning(
+                f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
+                f" {', '.join(tento)}"
+            )
+        if pristi:
+            st.info(
+                f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
+                f" {', '.join(pristi)}"
+            )
 
-    if not edited_radio[sloupec_pristi_rad].equals(spocitane_pristi):
-      edited_radio[sloupec_pristi_rad] = spocitane_pristi
-      st.session_state["radio_df"] = edited_radio
-      st.rerun()
+        styled_radio = radio_df.style.apply(
+            zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_rad, axis=1
+        )
+    else:
+        styled_radio = radio_df
+
+    edited_radio = st.data_editor(
+        styled_radio,
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config=radio_config,
+        key="radio_editor",
+    )
+
+    if (
+        sloupec_provedeni_rad
+        and sloupec_pristi_rad
+        and sloupec_provedeni_rad in edited_radio.columns
+        and sloupec_pristi_rad in edited_radio.columns
+    ):
+        spocitane_pristi = pd.to_datetime(
+            edited_radio[sloupec_provedeni_rad]
+        ).apply(lambda x: x + pd.DateOffset(years=3) if pd.notnull(x) else pd.NaT)
+
+        if not edited_radio[sloupec_pristi_rad].equals(spocitane_pristi):
+            edited_radio[sloupec_pristi_rad] = spocitane_pristi
+            st.session_state["radio_df"] = edited_radio
+            st.rerun()
 
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
