@@ -236,34 +236,40 @@ pristi_mesic = pristi_mesic_datum.month
 pristi_rok = pristi_mesic_datum.year
 
 
-def _formatuj_seznam_masin(filtrovane_df):
-    """Pomocná funkce: vrátí seznam ve tvaru ['ČísloMašiny (Následujcí)', ...]"""
+def _formatuj_seznam_masin(filtrovane_df, sloupec_data):
+    """Pomocná funkce: vrátí seznam ve tvaru ['ČísloMašiny (Rozsah)', ...]"""
     if filtrovane_df.empty:
         return []
 
     prvni_sloupec = filtrovane_df.columns[0]
-    # Bereme pouze výhradně sloupec "Následujcí"
+    seznam = []
+
+    # Zjistíme, zda vyhodnocujeme sloupec s V1 prohlídkou
+    je_v1 = "v1" in str(sloupec_data).lower()
     sloupec_typ = (
         "Následujcí" if "Následujcí" in filtrovane_df.columns else None
     )
 
-    seznam = []
     for _, row in filtrovane_df.iterrows():
         masina = row[prvni_sloupec]
         if pd.isna(masina):
             continue
         masina_str = str(masina).strip()
 
-        # Pokud existuje sloupec "Následujcí" a je v něm vyplněna hodnota
-        if (
-            sloupec_typ
-            and pd.notnull(row[sloupec_typ])
-            and str(row[sloupec_typ]).strip()
-        ):
-            typ_str = str(row[sloupec_typ]).strip()
-            seznam.append(f"{masina_str} ({typ_str})")
+        if je_v1:
+            # Pro V1 prohlídky zobrazíme (V1)
+            seznam.append(f"{masina_str} (V1)")
         else:
-            seznam.append(masina_str)
+            # Pro běžné prohlídky bereme rozsah ze sloupce "Následujcí"
+            if (
+                sloupec_typ
+                and pd.notnull(row[sloupec_typ])
+                and str(row[sloupec_typ]).strip()
+            ):
+                typ_str = str(row[sloupec_typ]).strip()
+                seznam.append(f"{masina_str} ({typ_str})")
+            else:
+                seznam.append(masina_str)
 
     # Odstraní duplicity při zachování pořadí
     return list(dict.fromkeys(seznam))
@@ -278,7 +284,7 @@ def ziskej_propadle_masiny(df, sloupec_data):
         df_temp[sloupec_data], dayfirst=True, errors="coerce"
     )
     filtrovane = df_temp[df_temp["_dt"] < zacatek_aktualniho_mesice]
-    return _formatuj_seznam_masin(filtrovane)
+    return _formatuj_seznam_masin(filtrovane, sloupec_data)
 
 
 def ziskej_masiny_tento_mesic(df, sloupec_data):
@@ -293,7 +299,7 @@ def ziskej_masiny_tento_mesic(df, sloupec_data):
         (df_temp["_dt"].dt.month == aktualni_mesic)
         & (df_temp["_dt"].dt.year == aktualni_rok)
     ]
-    return _formatuj_seznam_masin(filtrovane)
+    return _formatuj_seznam_masin(filtrovane, sloupec_data)
 
 
 def ziskej_masiny_pristi_mesic(df, sloupec_data):
@@ -308,7 +314,7 @@ def ziskej_masiny_pristi_mesic(df, sloupec_data):
         (df_temp["_dt"].dt.month == pristi_mesic)
         & (df_temp["_dt"].dt.year == pristi_rok)
     ]
-    return _formatuj_seznam_masin(filtrovane)
+    return _formatuj_seznam_masin(filtrovane, sloupec_data)
 
 
 def zvyrazni_terminy(row, sloupec_data):
