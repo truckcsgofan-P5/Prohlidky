@@ -236,23 +236,53 @@ pristi_mesic = pristi_mesic_datum.month
 pristi_rok = pristi_mesic_datum.year
 
 
+def _formatuj_seznam_masin(filtrovane_df):
+    """Pomocná funkce: vrátí seznam ve tvaru ['ČísloMašiny (Následujcí)', ...]"""
+    if filtrovane_df.empty:
+        return []
+
+    prvni_sloupec = filtrovane_df.columns[0]
+    # Bereme pouze výhradně sloupec "Následujcí"
+    sloupec_typ = (
+        "Následujcí" if "Následujcí" in filtrovane_df.columns else None
+    )
+
+    seznam = []
+    for _, row in filtrovane_df.iterrows():
+        masina = row[prvni_sloupec]
+        if pd.isna(masina):
+            continue
+        masina_str = str(masina).strip()
+
+        # Pokud existuje sloupec "Následujcí" a je v něm vyplněna hodnota
+        if (
+            sloupec_typ
+            and pd.notnull(row[sloupec_typ])
+            and str(row[sloupec_typ]).strip()
+        ):
+            typ_str = str(row[sloupec_typ]).strip()
+            seznam.append(f"{masina_str} ({typ_str})")
+        else:
+            seznam.append(masina_str)
+
+    # Odstraní duplicity při zachování pořadí
+    return list(dict.fromkeys(seznam))
+
+
 def ziskej_propadle_masiny(df, sloupec_data):
-    """Vrátí seznam mašin s datem starším než začátek aktuálního měsíce."""
+    """Vrátí seznam mašin a jejich rozsahů pro propadlé prohlídky."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
-    # Pridano dayfirst=True pro spravne cteni ceskych datumu (DD.MM.YYYY)
     df_temp["_dt"] = pd.to_datetime(
         df_temp[sloupec_data], dayfirst=True, errors="coerce"
     )
     filtrovane = df_temp[df_temp["_dt"] < zacatek_aktualniho_mesice]
-
-    prvni_sloupec = df.columns[0]
-    return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    return _formatuj_seznam_masin(filtrovane)
 
 
 def ziskej_masiny_tento_mesic(df, sloupec_data):
-    """Vrátí seznam mašin s datem v tomto měsíci."""
+    """Vrátí seznam mašin a jejich rozsahů pro prohlídky v tomto měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
@@ -263,13 +293,11 @@ def ziskej_masiny_tento_mesic(df, sloupec_data):
         (df_temp["_dt"].dt.month == aktualni_mesic)
         & (df_temp["_dt"].dt.year == aktualni_rok)
     ]
-
-    prvni_sloupec = df.columns[0]
-    return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    return _formatuj_seznam_masin(filtrovane)
 
 
 def ziskej_masiny_pristi_mesic(df, sloupec_data):
-    """Vrátí seznam mašin s datem v příštím měsíci."""
+    """Vrátí seznam mašin a jejich rozsahů pro prohlídky v příštím měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
@@ -280,9 +308,7 @@ def ziskej_masiny_pristi_mesic(df, sloupec_data):
         (df_temp["_dt"].dt.month == pristi_mesic)
         & (df_temp["_dt"].dt.year == pristi_rok)
     ]
-
-    prvni_sloupec = df.columns[0]
-    return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    return _formatuj_seznam_masin(filtrovane)
 
 
 def zvyrazni_terminy(row, sloupec_data):
