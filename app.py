@@ -598,7 +598,7 @@ with tab_radio:
   mozne_nazvy_radio = [
       "Datum prohlídky",
       "Příští prohlídka",
-      "Datum vykonání",
+      "Datum provedení",
       "Příští datum",
       "Datum",
   ]
