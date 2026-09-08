@@ -236,134 +236,68 @@ pristi_mesic = pristi_mesic_datum.month
 pristi_rok = pristi_mesic_datum.year
 
 
-def ziskej_propadle_masiny(df, sloupec_data, typ_prohlidky=None):
-  if df.empty or sloupec_data not in df.columns:
-    return []
-  df_temp = df.copy()
-  df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
-  filtrovane = df_temp[df_temp["_dt"] < zacatek_aktualniho_mesice]
+def ziskej_propadle_masiny(df, sloupec_data):
+    """Vrátí seznam mašin, které mají datum v daném sloupci starší než začátek aktuálního měsíce."""
+    if df.empty or sloupec_data not in df.columns:
+        return []
+    df_temp = df.copy()
+    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    filtrovane = df_temp[df_temp["_dt"] < zacatek_aktualniho_mesice]
 
-  # Volitelné filtrování podle typu prohlídky (např. V1)
-  if typ_prohlidky:
-    sloupec_typ = (
-        "Následujcí"
-        if "Následujcí" in df_temp.columns
-        else ("Rozsah" if "Rozsah" in df_temp.columns else None)
-    )
-    if sloupec_typ:
-      filtrovane = filtrovane[
-          filtrovane[sloupec_typ]
-          .astype(str)
-          .str.strip()
-          .str.upper()
-          == typ_prohlidky.upper()
-      ]
-
-  prvni_sloupec = df.columns[0]
-  return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    prvni_sloupec = df.columns[0]
+    return filtrovane[prvni_sloupec].dropna().unique().tolist()
 
 
-def ziskej_masiny_tento_mesic(df, sloupec_data, typ_prohlidky=None):
-  if df.empty or sloupec_data not in df.columns:
-    return []
-  df_temp = df.copy()
-  df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
-  filtrovane = df_temp[
-      (df_temp["_dt"].dt.month == aktualni_mesic)
-      & (df_temp["_dt"].dt.year == aktualni_rok)
-  ]
+def ziskej_masiny_tento_mesic(df, sloupec_data):
+    """Vrátí seznam mašin, které mají datum v daném sloupci v tomto měsíci."""
+    if df.empty or sloupec_data not in df.columns:
+        return []
+    df_temp = df.copy()
+    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    filtrovane = df_temp[
+        (df_temp["_dt"].dt.month == aktualni_mesic)
+        & (df_temp["_dt"].dt.year == aktualni_rok)
+    ]
 
-  # Volitelné filtrování podle typu prohlídky (např. V1)
-  if typ_prohlidky:
-    sloupec_typ = (
-        "Následujcí"
-        if "Následujcí" in df_temp.columns
-        else ("Rozsah" if "Rozsah" in df_temp.columns else None)
-    )
-    if sloupec_typ:
-      filtrovane = filtrovane[
-          filtrovane[sloupec_typ]
-          .astype(str)
-          .str.strip()
-          .str.upper()
-          == typ_prohlidky.upper()
-      ]
-
-  prvni_sloupec = df.columns[0]
-  return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    prvni_sloupec = df.columns[0]
+    return filtrovane[prvni_sloupec].dropna().unique().tolist()
 
 
-def ziskej_masiny_pristi_mesic(df, sloupec_data, typ_prohlidky=None):
-  if df.empty or sloupec_data not in df.columns:
-    return []
-  df_temp = df.copy()
-  df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
-  filtrovane = df_temp[
-      (df_temp["_dt"].dt.month == pristi_mesic)
-      & (df_temp["_dt"].dt.year == pristi_rok)
-  ]
+def ziskej_masiny_pristi_mesic(df, sloupec_data):
+    """Vrátí seznam mašin, které mají datum v daném sloupci v příštím měsíci."""
+    if df.empty or sloupec_data not in df.columns:
+        return []
+    df_temp = df.copy()
+    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    filtrovane = df_temp[
+        (df_temp["_dt"].dt.month == pristi_mesic)
+        & (df_temp["_dt"].dt.year == pristi_rok)
+    ]
 
-  # Volitelné filtrování podle typu prohlídky (např. V1)
-  if typ_prohlidky:
-    sloupec_typ = (
-        "Následujcí"
-        if "Následujcí" in df_temp.columns
-        else ("Rozsah" if "Rozsah" in df_temp.columns else None)
-    )
-    if sloupec_typ:
-      filtrovane = filtrovane[
-          filtrovane[sloupec_typ]
-          .astype(str)
-          .str.strip()
-          .str.upper()
-          == typ_prohlidky.upper()
-      ]
-
-  prvni_sloupec = df.columns[0]
-  return filtrovane[prvni_sloupec].dropna().unique().tolist()
-
-
-def ziskej_masiny_dle_typu(df, typ_prohlidky="V1"):
-  """Vrátí všechny mašiny, které mají v příští/budoucí prohlídce stanovený typ (např. V1)."""
-  if df.empty:
-    return []
-
-  sloupec_typ = (
-      "Následujcí"
-      if "Následujcí" in df.columns
-      else ("Rozsah" if "Rozsah" in df.columns else None)
-  )
-  if not sloupec_typ:
-    return []
-
-  filtrovane = df[
-      df[sloupec_typ].astype(str).str.strip().str.upper()
-      == typ_prohlidky.upper()
-  ]
-  prvni_sloupec = df.columns[0]
-  return filtrovane[prvni_sloupec].dropna().unique().tolist()
+    prvni_sloupec = df.columns[0]
+    return filtrovane[prvni_sloupec].dropna().unique().tolist()
 
 
 def zvyrazni_terminy(row, sloupec_data):
-  try:
-    dt = pd.to_datetime(row[sloupec_data])
-    if pd.notnull(dt):
-      if dt < zacatek_aktualniho_mesice:
-        return [
-            "background-color: #ffcdd2; color: #b71c1c; font-weight: bold"
-        ] * len(row)
-      elif dt.month == aktualni_mesic and dt.year == aktualni_rok:
-        return [
-            "background-color: #ffe0b2; color: #e65100; font-weight: bold"
-        ] * len(row)
-      elif dt.month == pristi_mesic and dt.year == pristi_rok:
-        return [
-            "background-color: #fff9c4; color: #f57f17; font-weight: bold"
-        ] * len(row)
-  except:
-    pass
-  return [""] * len(row)
-
+    """Zvýrazní řádky podle toho, zda je datum v daném sloupci propadlé nebo v tomto/příštím měsíci."""
+    try:
+        dt = pd.to_datetime(row[sloupec_data])
+        if pd.notnull(dt):
+            if dt < zacatek_aktualniho_mesice:
+                return [
+                    "background-color: #ffcdd2; color: #b71c1c; font-weight: bold"
+                ] * len(row)
+            elif dt.month == aktualni_mesic and dt.year == aktualni_rok:
+                return [
+                    "background-color: #ffe0b2; color: #e65100; font-weight: bold"
+                ] * len(row)
+            elif dt.month == pristi_mesic and dt.year == pristi_rok:
+                return [
+                    "background-color: #fff9c4; color: #f57f17; font-weight: bold"
+                ] * len(row)
+    except:
+        pass
+    return [""] * len(row)
 
 # --- ODKAZ NA DRUHOU STRÁNKU ---
 st.page_link(
@@ -380,156 +314,145 @@ tab_kbs, tab_ls06, tab_radio = st.tabs(
 
 # ==================== KBS List ====================
 with tab_kbs:
-  st.subheader("KBS Prohlídky")
+    st.subheader("KBS Prohlídky")
 
-  sloupce_s_datem_kbs = []
-  mozne_nazvy_kbs = [
-      "Datum provedení",
-      "Datum prohlídky",
-      "Příští prohlídka",
-      "Další V1",
-  ]
-  for col in kbs_df.columns:
-    if col in mozne_nazvy_kbs or "datum" in col.lower():
-      sloupce_s_datem_kbs.append(col)
+    sloupce_s_datem_kbs = []
+    mozne_nazvy_kbs = [
+        "Datum provedení",
+        "Datum prohlídky",
+        "Příští prohlídka",
+        "Další V1",
+    ]
+    for col in kbs_df.columns:
+        if col in mozne_nazvy_kbs or "datum" in col.lower():
+            sloupce_s_datem_kbs.append(col)
 
-  sloupec_provedeni = (
-      "Datum provedení"
-      if "Datum provedení" in kbs_df.columns
-      else (
-          "Datum prohlídky"
-          if "Datum prohlídky" in kbs_df.columns
-          else (sloupce_s_datem_kbs[0] if sloupce_s_datem_kbs else None)
-      )
-  )
-  sloupec_pristi = (
-      "Příští prohlídka"
-      if "Příští prohlídka" in kbs_df.columns
-      else (
-          sloupce_s_datem_kbs[-1] if len(sloupce_s_datem_kbs) > 1 else None
-      )
-  )
+    sloupec_provedeni = (
+        "Datum provedení"
+        if "Datum provedení" in kbs_df.columns
+        else (
+            "Datum prohlídky"
+            if "Datum prohlídky" in kbs_df.columns
+            else (sloupce_s_datem_kbs[0] if sloupce_s_datem_kbs else None)
+        )
+    )
+    sloupec_pristi = (
+        "Příští prohlídka"
+        if "Příští prohlídka" in kbs_df.columns
+        else (
+            sloupce_s_datem_kbs[-1] if len(sloupce_s_datem_kbs) > 1 else None
+        )
+    )
+    sloupec_v1 = "Další V1" if "Další V1" in kbs_df.columns else None
 
-  kbs_config = {}
-  for col in sloupce_s_datem_kbs:
-    kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
-    kbs_config[col] = st.column_config.DateColumn(
-        col, format="DD.MM.YYYY", step=1
+    # Nastavení datových sloupců pro editor
+    kbs_config = {}
+    for col in sloupce_s_datem_kbs:
+        kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
+        kbs_config[col] = st.column_config.DateColumn(
+            col, format="DD.MM.YYYY", step=1
+        )
+
+    if "Číslo mašiny" in kbs_df.columns:
+        kbs_config["Číslo mašiny"] = st.column_config.TextColumn(
+            "Číslo mašiny", width="small"
+        )
+    if "Rozsah" in kbs_df.columns:
+        kbs_config["Rozsah"] = st.column_config.TextColumn("Rozsah", width="small")
+
+    # ---------------- UPOZORNĚNÍ PRO BĚŽNÉ PROHLÍDKY ----------------
+    if sloupec_pristi:
+        propadle = ziskej_propadle_masiny(kbs_df, sloupec_pristi)
+        tento = ziskej_masiny_tento_mesic(kbs_df, sloupec_pristi)
+        pristi = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pristi)
+
+        if propadle:
+            st.error(f"🚨 **PROPADLÁ BĚŽNÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
+        if tento:
+            st.warning(
+                f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
+                f" {', '.join(tento)}"
+            )
+        if pristi:
+            st.info(
+                f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
+                f" {', '.join(pristi)}"
+            )
+
+    # ---------------- UPOZORNĚNÍ PRO PROHLÍDKY V1 ----------------
+    if sloupec_v1:
+        propadle_v1 = ziskej_propadle_masiny(kbs_df, sloupec_v1)
+        tento_v1 = ziskej_masiny_tento_mesic(kbs_df, sloupec_v1)
+        pristi_v1 = ziskej_masiny_pristi_mesic(kbs_df, sloupec_v1)
+
+        if propadle_v1:
+            st.error(f"🚨 **PROPADLÁ V1 PROHLÍDKA:** {', '.join(propadle_v1)}‼️")
+        if tento_v1:
+            st.warning(f"🔧 **V1 Tento měsíc ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento_v1)}")
+        if pristi_v1:
+            st.info(f"ℹ️ **V1 Příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_v1)}")
+
+    # Zvýraznění v tabulce podle běžné příští prohlídky
+    if sloupec_pristi:
+        styled_kbs = kbs_df.style.apply(
+            zvyrazni_terminy, sloupec_data=sloupec_pristi, axis=1
+        )
+    else:
+        styled_kbs = kbs_df
+
+    edited_kbs = st.data_editor(
+        styled_kbs,
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config=kbs_config,
+        key="kbs_editor",
     )
 
-  if "Číslo mašiny" in kbs_df.columns:
-    kbs_config["Číslo mašiny"] = st.column_config.TextColumn(
-        "Číslo mašiny", width="small"
-    )
-  if "Rozsah" in kbs_df.columns:
-    kbs_config["Rozsah"] = st.column_config.TextColumn("Rozsah", width="small")
+    # Automatické dopočty střídání P-2 / P-3 a termínu za 3 měsíce
+    zmena = False
+    sloupec_rozsah_aktualni = "Rozsah"
+    sloupec_rozsah_budouci = "Následujcí"
 
-  sloupec_pro_upozorneni = (
-      sloupec_pristi
-      if sloupec_pristi
-      else (sloupce_s_datem_kbs[-1] if sloupce_s_datem_kbs else None)
-  )
+    if (
+        sloupec_rozsah_aktualni in edited_kbs.columns
+        and sloupec_rozsah_budouci in edited_kbs.columns
+    ):
+        def urcit_nasledujici_rozsah(val):
+            if pd.isna(val):
+                return val
+            val_str = str(val).strip()
+            if val_str == "P-2":
+                return "P-3"
+            elif val_str == "P-3":
+                return "P-2"
+            return val
 
-  # NOVINKA: Výpis mašin čekajících na V1
-  masiny_v1 = ziskej_masiny_dle_typu(kbs_df, typ_prohlidky="V1")
-  if masiny_v1:
-    st.info(
-        f"🛠️ **Mašiny čekající na V1 ({len(masiny_v1)}):**"
-        f" {', '.join(masiny_v1)}"
-    )
+        nove_budouci = edited_kbs[sloupec_rozsah_aktualni].apply(
+            urcit_nasledujici_rozsah
+        )
 
-  if sloupec_pro_upozorneni:
-    propadle = ziskej_propadle_masiny(kbs_df, sloupec_pro_upozorneni)
-    tento = ziskej_masiny_tento_mesic(kbs_df, sloupec_pro_upozorneni)
-    pristi = ziskej_masiny_pristi_mesic(kbs_df, sloupec_pro_upozorneni)
+        if not edited_kbs[sloupec_rozsah_budouci].equals(nove_budouci):
+            edited_kbs[sloupec_rozsah_budouci] = nove_budouci
+            zmena = True
 
-    # Doplňková upozornění specificky pro V1
-    propadle_v1 = ziskej_propadle_masiny(
-        kbs_df, sloupec_pro_upozorneni, typ_prohlidky="V1"
-    )
-    tento_v1 = ziskej_masiny_tento_mesic(
-        kbs_df, sloupec_pro_upozorneni, typ_prohlidky="V1"
-    )
+    if (
+        sloupec_provedeni
+        and sloupec_pristi
+        and sloupec_provedeni in edited_kbs.columns
+        and sloupec_pristi in edited_kbs.columns
+    ):
+        spocitane_pristi = pd.to_datetime(
+            edited_kbs[sloupec_provedeni]
+        ).apply(lambda x: x + pd.DateOffset(months=3) if pd.notnull(x) else pd.NaT)
 
-    if propadle:
-      st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
-    if propadle_v1:
-      st.error(f"🚨 **z toho PROPADLÁ V1:** {', '.join(propadle_v1)}‼️")
+        if not edited_kbs[sloupec_pristi].equals(spocitane_pristi):
+            edited_kbs[sloupec_pristi] = spocitane_pristi
+            zmena = True
 
-    if tento:
-      st.warning(
-          f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
-          f" {', '.join(tento)}"
-      )
-    if tento_v1:
-      st.warning(f"🔧 **z toho V1 Tento měsíc:** {', '.join(tento_v1)}")
-
-    if pristi:
-      st.info(
-          f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
-          f" {', '.join(pristi)}"
-      )
-
-    styled_kbs = kbs_df.style.apply(
-        zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1
-    )
-  else:
-    styled_kbs = kbs_df
-
-  edited_kbs = st.data_editor(
-      kbs_df,
-      use_container_width=True,
-      num_rows="dynamic",
-      hide_index=True,
-      column_config=kbs_config,
-      key="kbs_editor",
-  )
-
-  zmena = False
-  sloupec_rozsah_aktualni = "Rozsah"
-  sloupec_rozsah_budouci = "Následujcí"
-
-  if (
-      sloupec_rozsah_aktualni in edited_kbs.columns
-      and sloupec_rozsah_budouci in edited_kbs.columns
-  ):
-
-    def urcit_nasledujici_rozsah(val):
-      if pd.isna(val):
-        return val
-      val_str = str(val).strip()
-      if val_str == "P-2":
-        return "P-3"
-      elif val_str == "P-3":
-        return "P-2"
-      return val
-
-    nove_budouci = edited_kbs[sloupec_rozsah_aktualni].apply(
-        urcit_nasledujici_rozsah
-    )
-
-    if not edited_kbs[sloupec_rozsah_budouci].equals(nove_budouci):
-      edited_kbs[sloupec_rozsah_budouci] = nove_budouci
-      zmena = True
-
-  if (
-      sloupec_provedeni
-      and sloupec_pristi
-      and sloupec_provedeni in edited_kbs.columns
-      and sloupec_pristi in edited_kbs.columns
-  ):
-    spocitane_pristi = pd.to_datetime(
-        edited_kbs[sloupec_provedeni]
-    ).apply(lambda x: x + pd.DateOffset(months=3) if pd.notnull(x) else pd.NaT)
-
-    if not edited_kbs[sloupec_pristi].equals(spocitane_pristi):
-      edited_kbs[sloupec_pristi] = spocitane_pristi
-      zmena = True
-
-  if zmena:
-    st.session_state["kbs_df"] = edited_kbs
-    st.rerun()
-
+    if zmena:
+        st.session_state["kbs_df"] = edited_kbs
+        st.rerun()
 # ==================== LS06 List ====================
 with tab_ls06:
   st.subheader("LS06")
