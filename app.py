@@ -237,11 +237,14 @@ pristi_rok = pristi_mesic_datum.year
 
 
 def ziskej_propadle_masiny(df, sloupec_data):
-    """Vrátí seznam mašin, které mají datum v daném sloupci starší než začátek aktuálního měsíce."""
+    """Vrátí seznam mašin s datem starším než začátek aktuálního měsíce."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
-    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    # Pridano dayfirst=True pro spravne cteni ceskych datumu (DD.MM.YYYY)
+    df_temp["_dt"] = pd.to_datetime(
+        df_temp[sloupec_data], dayfirst=True, errors="coerce"
+    )
     filtrovane = df_temp[df_temp["_dt"] < zacatek_aktualniho_mesice]
 
     prvni_sloupec = df.columns[0]
@@ -249,11 +252,13 @@ def ziskej_propadle_masiny(df, sloupec_data):
 
 
 def ziskej_masiny_tento_mesic(df, sloupec_data):
-    """Vrátí seznam mašin, které mají datum v daném sloupci v tomto měsíci."""
+    """Vrátí seznam mašin s datem v tomto měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
-    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    df_temp["_dt"] = pd.to_datetime(
+        df_temp[sloupec_data], dayfirst=True, errors="coerce"
+    )
     filtrovane = df_temp[
         (df_temp["_dt"].dt.month == aktualni_mesic)
         & (df_temp["_dt"].dt.year == aktualni_rok)
@@ -264,11 +269,13 @@ def ziskej_masiny_tento_mesic(df, sloupec_data):
 
 
 def ziskej_masiny_pristi_mesic(df, sloupec_data):
-    """Vrátí seznam mašin, které mají datum v daném sloupci v příštím měsíci."""
+    """Vrátí seznam mašin s datem v příštím měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
-    df_temp["_dt"] = pd.to_datetime(df_temp[sloupec_data], errors="coerce")
+    df_temp["_dt"] = pd.to_datetime(
+        df_temp[sloupec_data], dayfirst=True, errors="coerce"
+    )
     filtrovane = df_temp[
         (df_temp["_dt"].dt.month == pristi_mesic)
         & (df_temp["_dt"].dt.year == pristi_rok)
@@ -279,9 +286,9 @@ def ziskej_masiny_pristi_mesic(df, sloupec_data):
 
 
 def zvyrazni_terminy(row, sloupec_data):
-    """Zvýrazní řádky podle toho, zda je datum v daném sloupci propadlé nebo v tomto/příštím měsíci."""
+    """Zvýrazní řádky podle data v daném sloupci."""
     try:
-        dt = pd.to_datetime(row[sloupec_data])
+        dt = pd.to_datetime(row[sloupec_data], dayfirst=True)
         if pd.notnull(dt):
             if dt < zacatek_aktualniho_mesice:
                 return [
