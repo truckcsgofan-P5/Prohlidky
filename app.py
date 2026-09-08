@@ -683,7 +683,7 @@ with tab_radio:
   ):
     spocitane_pristi = pd.to_datetime(
         edited_radio[sloupec_provedeni_rad]
-    ).apply(lambda x: x + pd.DateOffset(years=4) if pd.notnull(x) else pd.NaT)
+    ).apply(lambda x: x + pd.DateOffset(years=3) if pd.notnull(x) else pd.NaT)
 
     if not edited_radio[sloupec_pristi_rad].equals(spocitane_pristi):
       edited_radio[sloupec_pristi_rad] = spocitane_pristi
