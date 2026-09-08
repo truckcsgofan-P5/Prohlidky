@@ -282,9 +282,9 @@ with tab_kbs:
         if propadle:
             st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
-            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
             
         styled_kbs = kbs_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni, axis=1)
     else:
@@ -372,9 +372,9 @@ with tab_ls06:
         if propadle:
             st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
-            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
             
         styled_ls06 = ls06_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_ls, axis=1)
     else:
@@ -432,9 +432,9 @@ with tab_radio:
         if propadle:
             st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
-            st.warning(f"🟧 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(f"🟨 **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
             
         styled_radio = radio_df.style.apply(zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_rad, axis=1)
     else:
