@@ -355,7 +355,7 @@ with tab_kbs:
     # Nastavení datových sloupců pro editor
     kbs_config = {}
     for col in sloupce_s_datem_kbs:
-        kbs_df[col] = pd.to_datetime(kbs_df[col], dayfirst=True, errors="coerce")
+        kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
         kbs_config[col] = st.column_config.DateColumn(
             col, format="DD.MM.YYYY", step=1
         )
