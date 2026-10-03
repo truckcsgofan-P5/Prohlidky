@@ -708,8 +708,19 @@ with tab_etcs:
     
     # Automatické propsání do session state, když uživatel provede změnu
     if not edited_etcs.equals(st.session_state.get("etcs_df", pd.DataFrame())):
+        
+        # --- ZDE JE PŘIDANÝ VÝPOČET PRO 6 MĚSÍCŮ ---
+        # 1. Převedeme Datum provedení bezpečně na datetime
+        edited_etcs['Datum provedení'] = pd.to_datetime(edited_etcs['Datum provedení'], errors='coerce')
+        
+        # 2. Přičteme k němu 6 měsíců a výsledek uložíme do Příští prohlídka
+        edited_etcs['Příští prohlídka'] = edited_etcs['Datum provedení'] + pd.DateOffset(months=6)
+        
+        # 3. Uložíme do session state
         st.session_state["etcs_df"] = edited_etcs
-
+        
+        # 4. Okamžitě překreslíme stránku, ať se změna hned vizuálně projeví
+        st.rerun()
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
 if st.button(
