@@ -651,14 +651,14 @@ with tab_radio:
             st.session_state["radio_df"] = edited_radio
             st.rerun()
 
-# ==================== ETCS List (NOVÝ / UPRAVENÝ) ====================
+# ==================== ETCS List (OPRAVENÝ A BEZPEČNÝ) ====================
 with tab_etcs:
     st.subheader("ETCS")
 
     etcs_config = {}
     sloupce_s_datem_etcs = ["Datum provedení", "Příští prohlídka"]
 
-    # Zformátování sloupců s datem
+    # Ujistíme se, že sloupce s datem jsou ve správném formátu
     for col in sloupce_s_datem_etcs:
         if col in etcs_df.columns:
             etcs_df[col] = pd.to_datetime(etcs_df[col], errors="coerce")
@@ -666,7 +666,7 @@ with tab_etcs:
                 col, format="DD.MM.YYYY", step=1
             )
 
-    # Menší šířka pro textové sloupce
+    # Nastavení šířky textových sloupců
     if "Číslo mašiny" in etcs_df.columns:
         etcs_config["Číslo mašiny"] = st.column_config.TextColumn(
             "Číslo mašiny", width="small"
@@ -690,46 +690,41 @@ with tab_etcs:
         if pristi_etcs:
             st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
 
-        styled_etcs = etcs_df.style.apply(
-            zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
-        )
-    else:
-        styled_etcs = etcs_df
-
-    # Zobrazení tabulky pro ETCS
+    # 🚨 OPRAVA: Do st.data_editor předáváme čistou tabulku etcs_df, NE styled_etcs!
     edited_etcs = st.data_editor(
-        styled_etcs,
+        etcs_df,
         use_container_width=True,
         num_rows="dynamic",
         hide_index=True,
         column_config=etcs_config,
         key="etcs_editor",
     )
-    
+
     # === AUTOMATICKÝ VÝPOČET PRO ETCS (+6 MĚSÍCŮ) ===
     zmena_etcs = False
-    
     sloupec_provedeni_etcs = "Datum provedení"
     sloupec_pristi_etcs = "Příští prohlídka"
 
     if (
         sloupec_provedeni_etcs in edited_etcs.columns
         and sloupec_pristi_etcs in edited_etcs.columns
+        and not edited_etcs.empty  # POJISTKA: Provádíme jen pokud tabulka není prázdná!
     ):
         # Přičtení 6 měsíců k datu provedení
         spocitane_pristi_etcs = pd.to_datetime(
             edited_etcs[sloupec_provedeni_etcs]
         ).apply(lambda x: x + pd.DateOffset(months=6) if pd.notnull(x) else pd.NaT)
 
-        # Porovnání, zda se vypočítaný termín liší od toho v tabulce
-        if not edited_etcs[sloupec_pristi_etcs].equals(spocitane_pristi_etcs):
+        # Porovnání hodnot (převod na string zabrání chybám při porovnávání typů)
+        if not edited_etcs[sloupec_pristi_etcs].astype(str).equals(spocitane_pristi_etcs.astype(str)):
             edited_etcs[sloupec_pristi_etcs] = spocitane_pristi_etcs
             zmena_etcs = True
 
-    # Pokud proběhla změna, uplatníme ji a překreslíme aplikaci
+    # Uložení změn a překreslení
     if zmena_etcs:
         st.session_state["etcs_df"] = edited_etcs
         st.rerun()
+
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
 if st.button(
