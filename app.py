@@ -12,169 +12,154 @@ st.set_page_config(
     page_title="Prohlídky VZ a Radiostanic", page_icon="🚂", layout="wide"
 )
 
-
 # ==================== INICIALIZACE COOKIES ====================
 cookie_manager = stx.CookieManager(key="muj_spravce_cookies")
 
-
 # ==================== 0. PŘIHLAŠOVACÍ SYSTÉM ====================
 if "users" in st.secrets:
-  UZIVATELE = dict(st.secrets["users"])
+    UZIVATELE = dict(st.secrets["users"])
 else:
-  UZIVATELE = {}
-  st.error(
-      "⚠️ Nebyli načteni žádní uživatelé. Nastav prosím sekci [users] v Secrets."
-  )
-
+    UZIVATELE = {}
+    st.error(
+        "⚠️ Nebyli načteni žádní uživatelé. Nastav prosím sekci [users] v Secrets."
+    )
 
 def vytvorit_bezpecny_token(username):
-  """Vytvoří bezpečný hash (otisk) z hesla, aby se cookie nedala zfalšovat."""
-  heslo = UZIVATELE.get(username, "")
-  text_k_zasifrovani = f"{username}_tajny_klic_{heslo}"
-  return hashlib.sha256(text_k_zasifrovani.encode()).hexdigest()
-
+    heslo = UZIVATELE.get(username, "")
+    text_k_zasifrovani = f"{username}_tajny_klic_{heslo}"
+    return hashlib.sha256(text_k_zasifrovani.encode()).hexdigest()
 
 def overit_prihlaseni():
-  # 1. Nejprve zkusíme načíst uživatele ze zachráněné Cookie
-  cookie_val = cookie_manager.get(cookie="auth_token")
+    cookie_val = cookie_manager.get(cookie="auth_token")
 
-  if cookie_val and "::" in str(cookie_val):
-    cookie_user, cookie_token = cookie_val.split("::", 1)
-    # Ověříme, zda souhlasí token (obrana proti podvržení cookie)
-    if (
-        cookie_user in UZIVATELE
-        and vytvorit_bezpecny_token(cookie_user) == cookie_token
-    ):
-      st.session_state["logged_in"] = True
-      st.session_state["user"] = cookie_user
-      return True
+    if cookie_val and "::" in str(cookie_val):
+        cookie_user, cookie_token = cookie_val.split("::", 1)
+        if (
+            cookie_user in UZIVATELE
+            and vytvorit_bezpecny_token(cookie_user) == cookie_token
+        ):
+            st.session_state["logged_in"] = True
+            st.session_state["user"] = cookie_user
+            return True
 
-  # 2. Klasická session kontrola
-  if st.session_state.get("logged_in"):
-    return True
+    if st.session_state.get("logged_in"):
+        return True
 
-  # Zobrazení přihlašovacího okna
-  st.markdown(
-      "<h2 style='text-align: center;'>🔐 Přihlášení do aplikace</h2>",
-      unsafe_allow_html=True,
-  )
+    st.markdown(
+        "<h2 style='text-align: center;'>🔐 Přihlášení do aplikace</h2>",
+        unsafe_allow_html=True,
+    )
 
-  col1, col2, col3 = st.columns([1, 2, 1])
-  with col2:
-    with st.form("login_form"):
-      username = st.text_input("Uživatelské jméno")
-      password = st.text_input("Heslo", type="password")
-      remember_me = st.checkbox(
-          "Pamatovat si mě na tomto zařízení (30 dní)", value=True
-      )
-      submit = st.form_submit_button("Přihlásit se", use_container_width=True)
-
-      if submit:
-        if username in UZIVATELE and UZIVATELE[username] == password:
-          st.session_state["logged_in"] = True
-          st.session_state["user"] = username
-
-          if remember_me:
-            bezpecny_token = f"{username}::{vytvorit_bezpecny_token(username)}"
-            cookie_manager.set(
-                "auth_token",
-                bezpecny_token,
-                expires_at=datetime.now() + timedelta(days=30),
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("login_form"):
+            username = st.text_input("Uživatelské jméno")
+            password = st.text_input("Heslo", type="password")
+            remember_me = st.checkbox(
+                "Pamatovat si mě na tomto zařízení (30 dní)", value=True
             )
-            time.sleep(0.5)
+            submit = st.form_submit_button("Přihlásit se", use_container_width=True)
 
-          st.success("Přihlášení úspěšné!")
-          st.rerun()
-        else:
-          st.error("❌ Nesprávné uživatelské jméno nebo heslo.")
+            if submit:
+                if username in UZIVATELE and UZIVATELE[username] == password:
+                    st.session_state["logged_in"] = True
+                    st.session_state["user"] = username
 
-  return False
+                    if remember_me:
+                        bezpecny_token = f"{username}::{vytvorit_bezpecny_token(username)}"
+                        cookie_manager.set(
+                            "auth_token",
+                            bezpecny_token,
+                            expires_at=datetime.now() + timedelta(days=30),
+                        )
+                        time.sleep(0.5)
 
+                    st.success("Přihlášení úspěšné!")
+                    st.rerun()
+                else:
+                    st.error("❌ Nesprávné uživatelské jméno nebo heslo.")
+    return False
 
 if not overit_prihlaseni():
-  st.stop()
+    st.stop()
 
 # ==================== POSTRANNÍ PANEL (ODHLÁŠENÍ) ====================
 with st.sidebar:
-  st.write(f"👤 Přihlášen: **{st.session_state.get('user', '')}**")
-  if st.button("Odhlásit se", use_container_width=True):
-    cookie_manager.delete("auth_token")
-    st.session_state["logged_in"] = False
-    time.sleep(0.5)
-    st.rerun()
+    st.write(f"👤 Přihlášen: **{st.session_state.get('user', '')}**")
+    if st.button("Odhlásit se", use_container_width=True):
+        cookie_manager.delete("auth_token")
+        st.session_state["logged_in"] = False
+        time.sleep(0.5)
+        st.rerun()
 
 # ==================== HLAVNÍ APLIKACE ====================
 st.title("🚂 Prohlídky VZ a Radiostanic")
 
 # --- 1. GITHUB INTEGRACE ---
 try:
-  g = Github(st.secrets["GITHUB_TOKEN"])
-  repo = g.get_repo(st.secrets["REPO_NAME"])
+    g = Github(st.secrets["GITHUB_TOKEN"])
+    repo = g.get_repo(st.secrets["REPO_NAME"])
 except Exception as e:
-  st.error(
-      "Není nastaven GitHub Token nebo REPO_NAME v Secrets na Streamlit Cloud!"
-  )
-  st.stop()
+    st.error(
+        "Není nastaven GitHub Token nebo REPO_NAME v Secrets na Streamlit Cloud!"
+    )
+    st.stop()
 
 
 # --- 2. NAČÍTÁNÍ EXCELU Z GITHUB ---
 def nacist_data_z_excelu():
-  try:
-    content = repo.get_contents("prohlidky.xlsx")
-    excel_data = io.BytesIO(content.decoded_content)
+    try:
+        content = repo.get_contents("prohlidky.xlsx")
+        excel_data = io.BytesIO(content.decoded_content)
 
-    xls = pd.ExcelFile(excel_data)
-    dostupne_listy = xls.sheet_names
+        xls = pd.ExcelFile(excel_data)
+        dostupne_listy = xls.sheet_names
 
-    st.caption(
-        f"ℹ️ Načtené listy v souboru: **{', '.join(dostupne_listy)}**"
-    )
+        st.caption(
+            f"ℹ️ Načtené listy v souboru: **{', '.join(dostupne_listy)}**"
+        )
 
-    kbs_df = (
-        pd.read_excel(xls, sheet_name=0, dtype=str)
-        if len(dostupne_listy) > 0
-        else pd.DataFrame()
-    )
-    ls06_df = (
-        pd.read_excel(xls, sheet_name=1, dtype=str)
-        if len(dostupne_listy) > 1
-        else pd.DataFrame()
-    )
-    radio_df = (
-        pd.read_excel(xls, sheet_name=2, dtype=str)
-        if len(dostupne_listy) > 2
-        else pd.DataFrame()
-    )
+        kbs_df = pd.read_excel(xls, sheet_name=0, dtype=str) if len(dostupne_listy) > 0 else pd.DataFrame()
+        ls06_df = pd.read_excel(xls, sheet_name=1, dtype=str) if len(dostupne_listy) > 1 else pd.DataFrame()
+        radio_df = pd.read_excel(xls, sheet_name=2, dtype=str) if len(dostupne_listy) > 2 else pd.DataFrame()
+        
+        # Načtení nebo vytvoření prázdného listu ETCS
+        if len(dostupne_listy) > 3:
+            etcs_df = pd.read_excel(xls, sheet_name=3, dtype=str)
+        else:
+            etcs_df = pd.DataFrame(columns=["Číslo mašiny", "Datum provedení", "Rozsah", "Příští prohlídka"])
 
-    return kbs_df.fillna(""), ls06_df.fillna(""), radio_df.fillna("")
-  except Exception as e:
-    st.error(f"Chyba při načítání souboru prohlidky.xlsx z GitHubu: {e}")
-    return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        return kbs_df.fillna(""), ls06_df.fillna(""), radio_df.fillna(""), etcs_df.fillna("")
+    except Exception as e:
+        st.error(f"Chyba při načítání souboru prohlidky.xlsx z GitHubu: {e}")
+        # Úprava záložních sloupců při selhání
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(columns=["Číslo mašiny", "Datum provedení", "Rozsah", "Příští prohlídka"])
 
 
 # --- 3. UKLÁDÁNÍ VŠECH LISTŮ DO EXCELU ---
-def ulozit_vse_do_excelu(kbs_df, ls06_df, radio_df):
-  try:
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-      kbs_df.to_excel(writer, sheet_name="KBS", index=False)
-      ls06_df.to_excel(writer, sheet_name="LS06", index=False)
-      radio_df.to_excel(writer, sheet_name="Radiostanice", index=False)
+def ulozit_vse_do_excelu(kbs_df, ls06_df, radio_df, etcs_df):
+    try:
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            kbs_df.to_excel(writer, sheet_name="KBS", index=False)
+            ls06_df.to_excel(writer, sheet_name="LS06", index=False)
+            radio_df.to_excel(writer, sheet_name="Radiostanice", index=False)
+            etcs_df.to_excel(writer, sheet_name="ETCS", index=False)
 
-    excel_bytes = output.getvalue()
-    content = repo.get_contents("prohlidky.xlsx")
-    repo.update_file(
-        content.path,
-        "Aktualizace dat z webové aplikace",
-        excel_bytes,
-        content.sha,
-    )
-    st.toast(
-        "✅ Všechny 3 listy byly úspěšně uloženy do prohlidky.xlsx na GitHub!",
-        icon="💾",
-    )
-  except Exception as e:
-    st.error(f"Chyba při ukládání na GitHub: {e}")
+        excel_bytes = output.getvalue()
+        content = repo.get_contents("prohlidky.xlsx")
+        repo.update_file(
+            content.path,
+            "Aktualizace dat z webové aplikace",
+            excel_bytes,
+            content.sha,
+        )
+        st.toast(
+            "✅ Všechny 4 listy byly úspěšně uloženy do prohlidky.xlsx na GitHub!",
+            icon="💾",
+        )
+    except Exception as e:
+        st.error(f"Chyba při ukládání na GitHub: {e}")
 
 
 # --- 4. NAČTENÍ A INICIALIZACE SESSION STATE ---
@@ -182,43 +167,48 @@ if (
     "kbs_df" not in st.session_state
     or "ls06_df" not in st.session_state
     or "radio_df" not in st.session_state
+    or "etcs_df" not in st.session_state
 ):
-  kbs_df, ls06_df, radio_df = nacist_data_z_excelu()
+    kbs_df, ls06_df, radio_df, etcs_df = nacist_data_z_excelu()
 
-  kbs_df.columns = kbs_df.columns.astype(str)
-  ls06_df.columns = ls06_df.columns.astype(str)
-  radio_df.columns = radio_df.columns.astype(str)
+    kbs_df.columns = kbs_df.columns.astype(str)
+    ls06_df.columns = ls06_df.columns.astype(str)
+    radio_df.columns = radio_df.columns.astype(str)
+    etcs_df.columns = etcs_df.columns.astype(str)
 
-  st.session_state["kbs_df"] = kbs_df.rename(
-      columns={
-          "Unnamed: 0": "Číslo mašiny",
-          "Datum provedení prohlídky a rozsah": "Datum provedení",
-          "Provedena prohlídka": "Rozsah",
-          " Přístí prohlídka a rozsah": "Příští prohlídka",
-          "Budoucí prohlídka": "Následujcí",
-          "Starý název 2": "Nový název 2",
-      }
-  )
+    st.session_state["kbs_df"] = kbs_df.rename(
+        columns={
+            "Unnamed: 0": "Číslo mašiny",
+            "Datum provedení prohlídky a rozsah": "Datum provedení",
+            "Provedena prohlídka": "Rozsah",
+            " Přístí prohlídka a rozsah": "Příští prohlídka",
+            "Budoucí prohlídka": "Následujcí",
+            "Starý název 2": "Nový název 2",
+        }
+    )
 
-  st.session_state["ls06_df"] = ls06_df.rename(
-      columns={
-          "Unnamed: 0": "Číslo mašiny",
-          "Datum provedení prohlídky a rozsah": "Datum prohlídky",
-          "Provedena prohlídka": "Rozsah",
-          "Přístí prohlídka a rozsah": "Příští prohlídka",
-          "Budoucí prohlídka": "Následujcí",
-          "2026-09-06 00:00:00": "Typ",
-          "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
-      }
-  )
+    st.session_state["ls06_df"] = ls06_df.rename(
+        columns={
+            "Unnamed: 0": "Číslo mašiny",
+            "Datum provedení prohlídky a rozsah": "Datum prohlídky",
+            "Provedena prohlídka": "Rozsah",
+            "Přístí prohlídka a rozsah": "Příští prohlídka",
+            "Budoucí prohlídka": "Následujcí",
+            "2026-09-06 00:00:00": "Typ",
+            "AKTUÁLNÍ PROHLÍDKA": "Výrobní číslo",
+        }
+    )
 
-  st.session_state["radio_df"] = radio_df.rename(
-      columns={"Starý název 1": "Nový název 1"}
-  )
+    st.session_state["radio_df"] = radio_df.rename(
+        columns={"Starý název 1": "Nový název 1"}
+    )
+    
+    st.session_state["etcs_df"] = etcs_df
 
 kbs_df = st.session_state["kbs_df"]
 ls06_df = st.session_state["ls06_df"]
 radio_df = st.session_state["radio_df"]
+etcs_df = st.session_state["etcs_df"]
 
 # --- 5. VÝPOČET TERMÍNŮ A ZVÝRAZNĚNÍ ---
 dnes = datetime.now()
@@ -237,18 +227,14 @@ pristi_rok = pristi_mesic_datum.year
 
 
 def _formatuj_seznam_masin(filtrovane_df, sloupec_data):
-    """Pomocná funkce: vrátí seznam ve tvaru ['ČísloMašiny (Rozsah)', ...]"""
     if filtrovane_df.empty:
         return []
 
     prvni_sloupec = filtrovane_df.columns[0]
     seznam = []
 
-    # Zjistíme, zda vyhodnocujeme sloupec s V1 prohlídkou
     je_v1 = "v1" in str(sloupec_data).lower()
-    sloupec_typ = (
-        "Následujcí" if "Následujcí" in filtrovane_df.columns else None
-    )
+    sloupec_typ = "Následujcí" if "Následujcí" in filtrovane_df.columns else None
 
     for _, row in filtrovane_df.iterrows():
         masina = row[prvni_sloupec]
@@ -257,10 +243,8 @@ def _formatuj_seznam_masin(filtrovane_df, sloupec_data):
         masina_str = str(masina).strip()
 
         if je_v1:
-            # Pro V1 prohlídky zobrazíme (V1)
             seznam.append(f"{masina_str} (V1)")
         else:
-            # Pro běžné prohlídky bereme rozsah ze sloupce "Následujcí"
             if (
                 sloupec_typ
                 and pd.notnull(row[sloupec_typ])
@@ -271,12 +255,10 @@ def _formatuj_seznam_masin(filtrovane_df, sloupec_data):
             else:
                 seznam.append(masina_str)
 
-    # Odstraní duplicity při zachování pořadí
     return list(dict.fromkeys(seznam))
 
 
 def ziskej_propadle_masiny(df, sloupec_data):
-    """Vrátí seznam mašin a jejich rozsahů pro propadlé prohlídky."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
@@ -288,7 +270,6 @@ def ziskej_propadle_masiny(df, sloupec_data):
 
 
 def ziskej_masiny_tento_mesic(df, sloupec_data):
-    """Vrátí seznam mašin a jejich rozsahů pro prohlídky v tomto měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
@@ -303,7 +284,6 @@ def ziskej_masiny_tento_mesic(df, sloupec_data):
 
 
 def ziskej_masiny_pristi_mesic(df, sloupec_data):
-    """Vrátí seznam mašin a jejich rozsahů pro prohlídky v příštím měsíci."""
     if df.empty or sloupec_data not in df.columns:
         return []
     df_temp = df.copy()
@@ -318,22 +298,15 @@ def ziskej_masiny_pristi_mesic(df, sloupec_data):
 
 
 def zvyrazni_terminy(row, sloupec_data):
-    """Zvýrazní řádky podle data v daném sloupci."""
     try:
         dt = pd.to_datetime(row[sloupec_data], dayfirst=True)
         if pd.notnull(dt):
             if dt < zacatek_aktualniho_mesice:
-                return [
-                    "background-color: #ffcdd2; color: #b71c1c; font-weight: bold"
-                ] * len(row)
+                return ["background-color: #ffcdd2; color: #b71c1c; font-weight: bold"] * len(row)
             elif dt.month == aktualni_mesic and dt.year == aktualni_rok:
-                return [
-                    "background-color: #ffe0b2; color: #e65100; font-weight: bold"
-                ] * len(row)
+                return ["background-color: #ffe0b2; color: #e65100; font-weight: bold"] * len(row)
             elif dt.month == pristi_mesic and dt.year == pristi_rok:
-                return [
-                    "background-color: #fff9c4; color: #f57f17; font-weight: bold"
-                ] * len(row)
+                return ["background-color: #fff9c4; color: #f57f17; font-weight: bold"] * len(row)
     except:
         pass
     return [""] * len(row)
@@ -347,8 +320,8 @@ st.page_link(
 st.divider()
 
 # --- 6. UI A TABULKY ---
-tab_kbs, tab_ls06, tab_radio = st.tabs(
-    ["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice"]
+tab_kbs, tab_ls06, tab_radio, tab_etcs = st.tabs(
+    ["📋 KBS prohlídky", "📟 LS06", "📻 Radiostanice", "🚆 ETCS"]
 )
 
 # ==================== KBS List ====================
@@ -384,7 +357,6 @@ with tab_kbs:
     )
     sloupec_v1 = "Další V1" if "Další V1" in kbs_df.columns else None
 
-    # Nastavení datových sloupců pro editor
     kbs_config = {}
     for col in sloupce_s_datem_kbs:
         kbs_df[col] = pd.to_datetime(kbs_df[col], errors="coerce")
@@ -399,7 +371,6 @@ with tab_kbs:
     if "Rozsah" in kbs_df.columns:
         kbs_config["Rozsah"] = st.column_config.TextColumn("Rozsah", width="small")
 
-    # ---------------- UPOZORNĚNÍ PRO BĚŽNÉ PROHLÍDKY ----------------
     if sloupec_pristi:
         propadle = ziskej_propadle_masiny(kbs_df, sloupec_pristi)
         tento = ziskej_masiny_tento_mesic(kbs_df, sloupec_pristi)
@@ -408,17 +379,10 @@ with tab_kbs:
         if propadle:
             st.error(f"🚨 **PROPADLÁ BĚŽNÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
-            st.warning(
-                f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
-                f" {', '.join(tento)}"
-            )
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(
-                f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
-                f" {', '.join(pristi)}"
-            )
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
 
-    # ---------------- UPOZORNĚNÍ PRO PROHLÍDKY V1 ----------------
     if sloupec_v1:
         propadle_v1 = ziskej_propadle_masiny(kbs_df, sloupec_v1)
         tento_v1 = ziskej_masiny_tento_mesic(kbs_df, sloupec_v1)
@@ -431,7 +395,6 @@ with tab_kbs:
         if pristi_v1:
             st.info(f"ℹ️ **V1 Příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_v1)}")
 
-    # Zvýraznění v tabulce podle běžné příští prohlídky
     if sloupec_pristi:
         styled_kbs = kbs_df.style.apply(
             zvyrazni_terminy, sloupec_data=sloupec_pristi, axis=1
@@ -448,7 +411,6 @@ with tab_kbs:
         key="kbs_editor",
     )
 
-    # Automatické dopočty střídání P-2 / P-3 a termínu za 3 měsíce
     zmena = False
     sloupec_rozsah_aktualni = "Rozsah"
     sloupec_rozsah_budouci = "Následujcí"
@@ -492,113 +454,107 @@ with tab_kbs:
     if zmena:
         st.session_state["kbs_df"] = edited_kbs
         st.rerun()
+
 # ==================== LS06 List ====================
 with tab_ls06:
-  st.subheader("LS06")
+    st.subheader("LS06")
 
-  sloupce_s_datem_ls06 = []
-  mozne_nazvy_ls06 = [
-      "Datum vykonání",
-      "Datum prohlídky",
-      "Příští datum",
-      "Příští prohlídka",
-      "Datum",
-  ]
-  for col in ls06_df.columns:
-    if col in mozne_nazvy_ls06 or "datum" in col.lower():
-      sloupce_s_datem_ls06.append(col)
+    sloupce_s_datem_ls06 = []
+    mozne_nazvy_ls06 = [
+        "Datum vykonání",
+        "Datum prohlídky",
+        "Příští datum",
+        "Příští prohlídka",
+        "Datum",
+    ]
+    for col in ls06_df.columns:
+        if col in mozne_nazvy_ls06 or "datum" in col.lower():
+            sloupce_s_datem_ls06.append(col)
 
-  sloupec_provedeni_ls = (
-      "Datum vykonání"
-      if "Datum vykonání" in ls06_df.columns
-      else (
-          "Datum prohlídky"
-          if "Datum prohlídky" in ls06_df.columns
-          else (sloupce_s_datem_ls06[0] if sloupce_s_datem_ls06 else None)
-      )
-  )
-  sloupec_pristi_ls = (
-      "Příští datum"
-      if "Příští datum" in ls06_df.columns
-      else (
-          "Příští prohlídka"
-          if "Příští prohlídka" in ls06_df.columns
-          else (
-              sloupce_s_datem_ls06[-1] if len(sloupce_s_datem_ls06) > 1 else None
-          )
-      )
-  )
-
-  ls06_config = {}
-  for col in sloupce_s_datem_ls06:
-    ls06_df[col] = pd.to_datetime(ls06_df[col], errors="coerce")
-    ls06_config[col] = st.column_config.DateColumn(
-        col, format="DD.MM.YYYY", step=1
+    sloupec_provedeni_ls = (
+        "Datum vykonání"
+        if "Datum vykonání" in ls06_df.columns
+        else (
+            "Datum prohlídky"
+            if "Datum prohlídky" in ls06_df.columns
+            else (sloupce_s_datem_ls06[0] if sloupce_s_datem_ls06 else None)
+        )
+    )
+    sloupec_pristi_ls = (
+        "Příští datum"
+        if "Příští datum" in ls06_df.columns
+        else (
+            "Příští prohlídka"
+            if "Příští prohlídka" in ls06_df.columns
+            else (
+                sloupce_s_datem_ls06[-1] if len(sloupce_s_datem_ls06) > 1 else None
+            )
+        )
     )
 
-  sloupec_pro_upozorneni_ls = (
-      sloupec_pristi_ls
-      if sloupec_pristi_ls
-      else (sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None)
-  )
+    ls06_config = {}
+    for col in sloupce_s_datem_ls06:
+        ls06_df[col] = pd.to_datetime(ls06_df[col], errors="coerce")
+        ls06_config[col] = st.column_config.DateColumn(
+            col, format="DD.MM.YYYY", step=1
+        )
 
-  if sloupec_pro_upozorneni_ls:
-    propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni_ls)
-    tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni_ls)
-    pristi = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni_ls)
-
-    if propadle:
-      st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
-    if tento:
-      st.warning(
-          f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
-          f" {', '.join(tento)}"
-      )
-    if pristi:
-      st.info(
-          f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
-          f" {', '.join(pristi)}"
-      )
-
-    styled_ls06 = ls06_df.style.apply(
-        zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_ls, axis=1
+    sloupec_pro_upozorneni_ls = (
+        sloupec_pristi_ls
+        if sloupec_pristi_ls
+        else (sloupce_s_datem_ls06[-1] if sloupce_s_datem_ls06 else None)
     )
-  else:
-    styled_ls06 = ls06_df
 
-  edited_ls06 = st.data_editor(
-      styled_ls06,
-      use_container_width=True,
-      num_rows="dynamic",
-      hide_index=True,
-      column_config=ls06_config,
-      key="ls06_editor",
-  )
+    if sloupec_pro_upozorneni_ls:
+        propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni_ls)
+        tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni_ls)
+        pristi = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni_ls)
 
-  if (
-      sloupec_provedeni_ls
-      and sloupec_pristi_ls
-      and sloupec_provedeni_ls in edited_ls06.columns
-      and sloupec_pristi_ls in edited_ls06.columns
-  ):
-    spocitane_pristi = pd.to_datetime(
-        edited_ls06[sloupec_provedeni_ls]
-    ).apply(lambda x: x + pd.DateOffset(months=12) if pd.notnull(x) else pd.NaT)
+        if propadle:
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
+        if tento:
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
+        if pristi:
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
 
-    if not edited_ls06[sloupec_pristi_ls].equals(spocitane_pristi):
-      edited_ls06[sloupec_pristi_ls] = spocitane_pristi
-      st.session_state["ls06_df"] = edited_ls06
-      st.rerun()
+        styled_ls06 = ls06_df.style.apply(
+            zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_ls, axis=1
+        )
+    else:
+        styled_ls06 = ls06_df
 
+    edited_ls06 = st.data_editor(
+        styled_ls06,
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config=ls06_config,
+        key="ls06_editor",
+    )
+
+    if (
+        sloupec_provedeni_ls
+        and sloupec_pristi_ls
+        and sloupec_provedeni_ls in edited_ls06.columns
+        and sloupec_pristi_ls in edited_ls06.columns
+    ):
+        spocitane_pristi = pd.to_datetime(
+            edited_ls06[sloupec_provedeni_ls]
+        ).apply(lambda x: x + pd.DateOffset(months=12) if pd.notnull(x) else pd.NaT)
+
+        if not edited_ls06[sloupec_pristi_ls].equals(spocitane_pristi):
+            edited_ls06[sloupec_pristi_ls] = spocitane_pristi
+            st.session_state["ls06_df"] = edited_ls06
+            st.rerun()
+
+# ==================== RADIOSTANICE List ====================
 with tab_radio:
     st.subheader("Radiostanice")
 
-    # 1. PŘIDÁNO: Pokud chybí sloupec pro výpočet dalšího data, automaticky ho založíme
     if "Příští prohlídka" not in radio_df.columns:
         radio_df["Příští prohlídka"] = pd.NaT
 
     sloupce_s_datem_radio = []
-    # 2. PŘIDÁNO: Doplněno "Datum provedení" na začátek seznamu
     mozne_nazvy_radio = [
         "Datum provedení", 
         "Datum prohlídky",
@@ -612,7 +568,6 @@ with tab_radio:
         if col in mozne_nazvy_radio or "datum" in col.lower():
             sloupce_s_datem_radio.append(col)
 
-    # 3. PŘIDÁNO: Přidána priorita pro "Datum provedení"
     sloupec_provedeni_rad = (
         "Datum provedení"
         if "Datum provedení" in radio_df.columns
@@ -662,15 +617,9 @@ with tab_radio:
         if propadle:
             st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
-            st.warning(
-                f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):**"
-                f" {', '.join(tento)}"
-            )
+            st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(
-                f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):**"
-                f" {', '.join(pristi)}"
-            )
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
 
         styled_radio = radio_df.style.apply(
             zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_rad, axis=1
@@ -702,6 +651,65 @@ with tab_radio:
             st.session_state["radio_df"] = edited_radio
             st.rerun()
 
+# ==================== ETCS List (NOVÝ / UPRAVENÝ) ====================
+with tab_etcs:
+    st.subheader("ETCS")
+
+    etcs_config = {}
+    sloupce_s_datem_etcs = ["Datum provedení", "Příští prohlídka"]
+
+    # Zformátování sloupců s datem
+    for col in sloupce_s_datem_etcs:
+        if col in etcs_df.columns:
+            etcs_df[col] = pd.to_datetime(etcs_df[col], errors="coerce")
+            etcs_config[col] = st.column_config.DateColumn(
+                col, format="DD.MM.YYYY", step=1
+            )
+
+    # Menší šířka pro textové sloupce
+    if "Číslo mašiny" in etcs_df.columns:
+        etcs_config["Číslo mašiny"] = st.column_config.TextColumn(
+            "Číslo mašiny", width="small"
+        )
+    if "Rozsah" in etcs_df.columns:
+        etcs_config["Rozsah"] = st.column_config.TextColumn(
+            "Rozsah", width="small"
+        )
+
+    # Upozornění podle 'Příští prohlídka'
+    sloupec_upozorneni_etcs = "Příští prohlídka"
+    if sloupec_upozorneni_etcs in etcs_df.columns:
+        propadle_etcs = ziskej_propadle_masiny(etcs_df, sloupec_upozorneni_etcs)
+        tento_etcs = ziskej_masiny_tento_mesic(etcs_df, sloupec_upozorneni_etcs)
+        pristi_etcs = ziskej_masiny_pristi_mesic(etcs_df, sloupec_upozorneni_etcs)
+
+        if propadle_etcs:
+            st.error(f"🚨 **PROPADLÁ PROHLÍDKA ETCS:** {', '.join(propadle_etcs)}‼️")
+        if tento_etcs:
+            st.warning(f"🔔 **PROHLÍDKA ETCS TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento_etcs)}")
+        if pristi_etcs:
+            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
+
+        styled_etcs = etcs_df.style.apply(
+            zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
+        )
+    else:
+        styled_etcs = etcs_df
+
+    # Zobrazení tabulky pro ETCS
+    edited_etcs = st.data_editor(
+        styled_etcs,
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config=etcs_config,
+        key="etcs_editor",
+    )
+    
+    # Automatické propsání do session state, když uživatel provede změnu
+    if not edited_etcs.equals(st.session_state.get("etcs_df", pd.DataFrame())):
+        st.session_state["etcs_df"] = edited_etcs
+
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
 if st.button(
@@ -709,4 +717,4 @@ if st.button(
     type="primary",
     use_container_width=True,
 ):
-  ulozit_vse_do_excelu(edited_kbs, edited_ls06, edited_radio)
+    ulozit_vse_do_excelu(edited_kbs, edited_ls06, edited_radio, edited_etcs)
