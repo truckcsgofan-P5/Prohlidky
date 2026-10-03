@@ -706,20 +706,29 @@ with tab_etcs:
         key="etcs_editor",
     )
     
-    # Automatické propsání do session state, když uživatel provede změnu
-    if not edited_etcs.equals(st.session_state.get("etcs_df", pd.DataFrame())):
-        
-        # --- ZDE JE PŘIDANÝ VÝPOČET PRO 6 MĚSÍCŮ ---
-        # 1. Převedeme Datum provedení bezpečně na datetime
-        edited_etcs['Datum provedení'] = pd.to_datetime(edited_etcs['Datum provedení'], errors='coerce')
-        
-        # 2. Přičteme k němu 6 měsíců a výsledek uložíme do Příští prohlídka
-        edited_etcs['Příští prohlídka'] = edited_etcs['Datum provedení'] + pd.DateOffset(months=6)
-        
-        # 3. Uložíme do session state
+    # === AUTOMATICKÝ VÝPOČET PRO ETCS (+6 MĚSÍCŮ) ===
+    zmena_etcs = False
+    
+    sloupec_provedeni_etcs = "Datum provedení"
+    sloupec_pristi_etcs = "Příští prohlídka"
+
+    if (
+        sloupec_provedeni_etcs in edited_etcs.columns
+        and sloupec_pristi_etcs in edited_etcs.columns
+    ):
+        # Přičtení 6 měsíců k datu provedení
+        spocitane_pristi_etcs = pd.to_datetime(
+            edited_etcs[sloupec_provedeni_etcs]
+        ).apply(lambda x: x + pd.DateOffset(months=6) if pd.notnull(x) else pd.NaT)
+
+        # Porovnání, zda se vypočítaný termín liší od toho v tabulce
+        if not edited_etcs[sloupec_pristi_etcs].equals(spocitane_pristi_etcs):
+            edited_etcs[sloupec_pristi_etcs] = spocitane_pristi_etcs
+            zmena_etcs = True
+
+    # Pokud proběhla změna, uplatníme ji a překreslíme aplikaci
+    if zmena_etcs:
         st.session_state["etcs_df"] = edited_etcs
-        
-        # 4. Okamžitě překreslíme stránku, ať se změna hned vizuálně projeví
         st.rerun()
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
