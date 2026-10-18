@@ -686,7 +686,7 @@ with tab_etcs:
             st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
 
    # 3. BAREVNÝ PŘEHLED (Statická tabulka, která UMÍ barvy)
-    st.markdown("##### 📊 Barevný přehled, Nelouží pro úpravu‼️")
+    st.markdown("##### 📊 Barevný přehled, Neslouží pro úpravu‼️")
     if sloupec_upozorneni_etcs in etcs_df.columns:
         # Pomocná funkce pro převedení datumu na český tvar DD.MM.YYYY
         def formatuj_datum_na_web(val):
