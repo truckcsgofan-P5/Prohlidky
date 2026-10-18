@@ -651,14 +651,14 @@ with tab_radio:
             st.session_state["radio_df"] = edited_radio
             st.rerun()
 
-# ==================== ETCS List (BAREVNÝ A BEZPEČNÝ) ====================
+# ==================== ETCS List (S BAREVNÝM PŘEHLEDEM) ====================
 with tab_etcs:
     st.subheader("ETCS")
 
     etcs_config = {}
     sloupce_s_datem_etcs = ["Datum provedení", "Příští prohlídka"]
 
-    # 1. Zformátování datových sloupců pro kalendářní výběr
+    # 1. Zformátování datových sloupců
     for col in sloupce_s_datem_etcs:
         if col in etcs_df.columns:
             etcs_df[col] = pd.to_datetime(etcs_df[col], errors="coerce")
@@ -685,16 +685,20 @@ with tab_etcs:
         if pristi_etcs:
             st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
 
-    # 3. Získání obarveného styleru
-    styled_etcs = etcs_df.style.apply(
-        zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
-    )
+    # 3. BAREVNÝ PŘEHLED (Statická tabulka, která UMÍ barvy)
+    st.markdown("##### 📊 Barevný přehled termínů:")
+    if sloupec_upozorneni_etcs in etcs_df.columns:
+        styled_etcs_preview = etcs_df.style.apply(
+            zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
+        )
+        st.dataframe(styled_etcs_preview, use_container_width=True, hide_index=True)
 
-    # 4. Zobrazení v st.data_editor
-    # Pozor: Aby Streamlit nesmazal data, předáváme 'styled_etcs', ale ošetříme 
-    # načítání změn přímo z nově upraveného DataFrame!
+    st.divider()
+
+    # 4. EDITAČNÍ TABULKA (Čistá, aby se data nikdy nesmazala)
+    st.markdown("##### ✏️ Úprava a zadávání dat:")
     edited_etcs = st.data_editor(
-        styled_etcs,
+        etcs_df,
         use_container_width=True,
         num_rows="dynamic",
         hide_index=True,
@@ -702,7 +706,8 @@ with tab_etcs:
         key="etcs_editor",
     )
 
-    # === AUTOMATICKÝ VÝPOČET PRO ETCS (+6 MĚSÍCŮ) A ULOŽENÍ ===
+    # === AUTOMATICKÝ VÝPOČET PRO ETCS (+6 MĚSÍCŮ) ===
+    zmena_etcs = False
     sloupec_provedeni_etcs = "Datum provedení"
     sloupec_pristi_etcs = "Příští prohlídka"
 
@@ -716,17 +721,18 @@ with tab_etcs:
             edited_etcs[sloupec_provedeni_etcs]
         ).apply(lambda x: x + pd.DateOffset(months=6) if pd.notnull(x) else pd.NaT)
 
-        # Převod na string pro bezpečné porovnání
         soucasne_pristi = pd.to_datetime(edited_etcs[sloupec_pristi_etcs]).dt.strftime('%Y-%m-%d')
         nove_pristi = spocitane_pristi_etcs.dt.strftime('%Y-%m-%d')
 
         if not soucasne_pristi.equals(nove_pristi):
             edited_etcs[sloupec_pristi_etcs] = spocitane_pristi_etcs
-            st.session_state["etcs_df"] = edited_etcs
+            zmena_etcs = True
+
+    # Uložení změn a překreslení
+    if zmena_etcs or not edited_etcs.equals(st.session_state.get("etcs_df", pd.DataFrame())):
+        st.session_state["etcs_df"] = edited_etcs
+        if zmena_etcs:
             st.rerun()
-        else:
-            # Uložíme běžné úpravy (např. ručně přepsaný text/číslo mašiny)
-            st.session_state["etcs_df"] = edited_etcs
 
 # --- 7. GLOBÁLNÍ TLAČÍTKO ULOŽIT ---
 st.divider()
