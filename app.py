@@ -711,7 +711,7 @@ with tab_etcs:
     st.divider()
 
     # 4. EDITAČNÍ TABULKA (Čistá, aby se data nikdy nesmazala)
-    st.markdown("##### ✏️ Úprava a zadávání dat:")
+    st.markdown("##### ✏️ Úprava přehledu ETCS:")
     edited_etcs = st.data_editor(
         etcs_df,
         use_container_width=True,
