@@ -685,11 +685,26 @@ with tab_etcs:
         if pristi_etcs:
             st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
 
-    # 3. BAREVNÝ PŘEHLED (Statická tabulka, která UMÍ barvy)
+   # 3. BAREVNÝ PŘEHLED (Statická tabulka, která UMÍ barvy)
     st.markdown("##### 📊 Barevný přehled termínů:")
     if sloupec_upozorneni_etcs in etcs_df.columns:
-        styled_etcs_preview = etcs_df.style.apply(
-            zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
+        # Pomocná funkce pro převedení datumu na český tvar DD.MM.YYYY
+        def formatuj_datum_na_web(val):
+            if pd.isnull(val):
+                return ""
+            dt = pd.to_datetime(val, errors="coerce")
+            if pd.notnull(dt):
+                return dt.strftime("%d.%m.%Y")
+            return str(val)
+
+        # Načtení dostupných datových sloupců pro formátování
+        dostupne_datove_sloupce = [c for c in sloupce_s_datem_etcs if c in etcs_df.columns]
+
+        styled_etcs_preview = (
+            etcs_df.style.apply(
+                zvyrazni_terminy, sloupec_data=sloupec_upozorneni_etcs, axis=1
+            )
+            .format(formatuj_datum_na_web, subset=dostupne_datove_sloupce)
         )
         st.dataframe(styled_etcs_preview, use_container_width=True, hide_index=True)
 
