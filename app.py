@@ -455,7 +455,7 @@ with tab_kbs:
         st.session_state["kbs_df"] = edited_kbs
         st.rerun()
 
-# ==================== LS06 List ====================
+# ==================== LS06 List (UPRAVENO NA 3 MĚSÍCE DOPŘEDU) ====================
 with tab_ls06:
     st.subheader("LS06")
 
@@ -508,17 +508,46 @@ with tab_ls06:
     if sloupec_pro_upozorneni_ls:
         propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni_ls)
         tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni_ls)
-        pristi = ziskej_masiny_pristi_mesic(ls06_df, sloupec_pro_upozorneni_ls)
+        
+        # Výpočet pro příští 3 měsíce (začátek příštího měsíce až konec 3. měsíce)
+        zacatek_okna_ls = zacatek_aktualniho_mesice + pd.DateOffset(months=1)
+        konec_okna_ls = zacatek_aktualni_mesice + pd.DateOffset(months=4)
+        
+        df_temp_ls = ls06_df.copy()
+        df_temp_ls["_dt"] = pd.to_datetime(
+            df_temp_ls[sloupec_pro_upozorneni_ls], dayfirst=True, errors="coerce"
+        )
+        filtrovane_3m = df_temp_ls[
+            (df_temp_ls["_dt"] >= zacatek_okna_ls) & (df_temp_ls["_dt"] < konec_okna_ls)
+        ]
+        pristi_3m = _formatuj_seznam_masin(filtrovane_3m, sloupec_pro_upozorneni_ls)
+        
+        start_m = zacatek_okna_ls
+        end_m = zacatek_aktualniho_mesice + pd.DateOffset(months=3)
 
         if propadle:
             st.error(f"🚨 **PROPADLÁ PROHLÍDKA:** {', '.join(propadle)}‼️")
         if tento:
             st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
-        if pristi:
-            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+        if pristi_3m:
+            st.info(f"⚠ **Pozor na příští 3 měsíce ({start_m.strftime('%m/%Y')} – {end_m.strftime('%m/%Y')}):** {', '.join(pristi_3m)}")
+
+        def zvyrazni_terminy_ls06(row, sloupec_data):
+            try:
+                dt = pd.to_datetime(row[sloupec_data], dayfirst=True)
+                if pd.notnull(dt):
+                    if dt < zacatek_aktualniho_mesice:
+                        return ["background-color: #ffcdd2; color: #b71c1c; font-weight: bold"] * len(row)
+                    elif dt.month == aktualni_mesic and dt.year == aktualni_rok:
+                        return ["background-color: #ffe0b2; color: #e65100; font-weight: bold"] * len(row)
+                    elif zacatek_okna_ls <= dt < konec_okna_ls:
+                        return ["background-color: #fff9c4; color: #f57f17; font-weight: bold"] * len(row)
+            except:
+                pass
+            return [""] * len(row)
 
         styled_ls06 = ls06_df.style.apply(
-            zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_ls, axis=1
+            zvyrazni_terminy_ls06, sloupec_data=sloupec_pro_upozorneni_ls, axis=1
         )
     else:
         styled_ls06 = ls06_df
@@ -546,7 +575,6 @@ with tab_ls06:
             edited_ls06[sloupec_pristi_ls] = spocitane_pristi
             st.session_state["ls06_df"] = edited_ls06
             st.rerun()
-
 # ==================== RADIOSTANICE List ====================
 with tab_radio:
     st.subheader("Radiostanice")
