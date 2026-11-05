@@ -509,9 +509,9 @@ with tab_ls06:
         propadle = ziskej_propadle_masiny(ls06_df, sloupec_pro_upozorneni_ls)
         tento = ziskej_masiny_tento_mesic(ls06_df, sloupec_pro_upozorneni_ls)
         
-        # Výpočet pro příští 3 měsíce (začátek příštího měsíce až konec 3. měsíce)
+        # Výpočet rozmezí pro příští 3 měsíce
         zacatek_okna_ls = zacatek_aktualniho_mesice + pd.DateOffset(months=1)
-        konec_okna_ls = zacatek_aktualni_mesice + pd.DateOffset(months=4)
+        konec_okna_ls = zacatek_aktualniho_mesice + pd.DateOffset(months=4)
         
         df_temp_ls = ls06_df.copy()
         df_temp_ls["_dt"] = pd.to_datetime(
@@ -575,6 +575,7 @@ with tab_ls06:
             edited_ls06[sloupec_pristi_ls] = spocitane_pristi
             st.session_state["ls06_df"] = edited_ls06
             st.rerun()
+
 # ==================== RADIOSTANICE List ====================
 with tab_radio:
     st.subheader("Radiostanice")
