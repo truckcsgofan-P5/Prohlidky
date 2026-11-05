@@ -381,7 +381,7 @@ with tab_kbs:
         if tento:
             st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"⚠️ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
 
     if sloupec_v1:
         propadle_v1 = ziskej_propadle_masiny(kbs_df, sloupec_v1)
@@ -530,7 +530,7 @@ with tab_ls06:
         if tento:
             st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi_3m:
-            st.info(f"⚠ **Pozor na příští 3 měsíce ({start_m.strftime('%m/%Y')} – {end_m.strftime('%m/%Y')}):** {', '.join(pristi_3m)}")
+            st.info(f"⚠️ **Pozor na příští 3 měsíce ({start_m.strftime('%m/%Y')} – {end_m.strftime('%m/%Y')}):** {', '.join(pristi_3m)}")
 
         def zvyrazni_terminy_ls06(row, sloupec_data):
             try:
@@ -648,7 +648,7 @@ with tab_radio:
         if tento:
             st.warning(f"🔔 **PROHLÍDKA TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento)}")
         if pristi:
-            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
+            st.info(f"⚠️ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi)}")
 
         styled_radio = radio_df.style.apply(
             zvyrazni_terminy, sloupec_data=sloupec_pro_upozorneni_rad, axis=1
@@ -712,7 +712,7 @@ with tab_etcs:
         if tento_etcs:
             st.warning(f"🔔 **PROHLÍDKA ETCS TENTO MĚSÍC ({aktualni_mesic}/{aktualni_rok}):** {', '.join(tento_etcs)}")
         if pristi_etcs:
-            st.info(f"⚠ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
+            st.info(f"⚠️ **Pozor na příští měsíc ({pristi_mesic}/{pristi_rok}):** {', '.join(pristi_etcs)}")
 
    # 3. BAREVNÝ PŘEHLED (Statická tabulka, která UMÍ barvy)
     st.markdown("##### 📊 Barevný přehled, Neslouží pro úpravu‼️")
